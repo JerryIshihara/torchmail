@@ -245,7 +245,7 @@ Total: **$0–5/month**.
 | CI/CD pipeline | **New** | `.github/workflows/ci.yml`, `.github/workflows/auto-add-bugs-to-board.yml` |
 | Ruff lint config | **New** | `ruff.toml` |
 | Unit tests | **New** | `tests/test_search.py` |
-| Deployment config | **New** | `railway.toml`, `vercel.json` |
+| Deployment config | **New** | `railway.json`, `src/backend/Dockerfile`, `src/frontend/vercel.json`, `.github/workflows/deploy.yml` |
 
 ---
 
@@ -299,9 +299,9 @@ and requires a `GH_PROJECT_TOKEN` repository secret with `project` scope.
 
 | Issue | Status | Priority | Track |
 |-------|--------|----------|-------|
-| #33 CI/CD | In Progress | P0 | D — Deploy |
-| #29 DB schema | Todo | P0 | A — Backend |
-| #25 Backend API | Todo | P0 | A — Backend |
+| #33 CI/CD | Done | P0 | D — Deploy |
+| #29 DB schema | Done | P0 | A — Backend |
+| #25 Backend API | Done | P0 | A — Backend |
 | #26 Region ranking | Backlog | P1 | A — Backend |
 | #28 Frontend | Backlog | P1 | B — Frontend |
 | #27 Lab hiring scraper | Backlog | P1 | C — Scraper |
@@ -309,18 +309,17 @@ and requires a `GH_PROJECT_TOKEN` repository secret with `project` scope.
 
 ### Execution order
 
-1. **#33** (CI/CD) — in progress, protects all future PRs
-2. Start **#29** (schema) and **#25** (backend API) simultaneously — both are P0
-3. **#26** (region ranking) and **#28** (frontend with mock data) can start right after
-4. **#27** (scraper) needs #25 done first
-5. **#30** (deploy) is last
+1. **#33** (CI/CD) — done and protecting PRs to `main`
+2. **#29** (schema) and **#25** (backend API) — done
+3. **#26** (region ranking), **#27** (scraper), **#28** (frontend) — implemented; board/issue cleanup pending
+4. **#30** (deploy) — final operational step (environment wiring + public URLs)
 
 ---
 
 ## Success criteria for the MVP
 
-- [ ] User types a research area → gets top 50 professors globally
-- [ ] Results show US/UK/HK/SG labs first
-- [ ] Each result shows the **exact paragraph** where the lab mentions hiring, with source URL
-- [ ] Cached searches return in < 1 second
+- [x] User types a research area → gets top 50 professors globally
+- [x] Results show US/UK/HK/SG labs first
+- [x] Each result shows the **exact paragraph** where the lab mentions hiring, with source URL
+- [x] Cached searches return in < 1 second
 - [ ] Deployed to a public URL, no login required

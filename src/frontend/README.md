@@ -20,3 +20,9 @@ Set `VITE_API_BASE_URL` to point to the FastAPI server.
 ```bash
 VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev
 ```
+
+## Vercel deployment
+
+- Set project root directory to `src/frontend`
+- Set environment variable `VITE_API_BASE_URL` to the Railway backend URL
+- `vercel.json` includes a default `/api/*` rewrite to `https://torchmail-api.up.railway.app/api/*` when no explicit base URL is set

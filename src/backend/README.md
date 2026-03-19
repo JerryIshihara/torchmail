@@ -16,6 +16,12 @@ uvicorn src.backend.main:app --reload
 - `GET /api/search?q=machine+learning&countries=US,GB`
 - `GET /api/search/{id}`
 
+## Railway deployment
+
+- Container config is in `src/backend/Dockerfile`
+- Railway project config is in `/railway.json`
+- Required environment variables: `DATABASE_URL`, `OPENALEX_EMAIL`, `BACKEND_CORS_ORIGINS`
+
 ## Hiring signal backfill
 
 `GET /api/search` returns immediately, then schedules a background scraper that:
