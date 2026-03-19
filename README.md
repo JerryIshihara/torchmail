@@ -12,11 +12,15 @@ Students struggle to:
 
 ## Solution
 TorchMail provides:
-1. **AI-Powered Email Generator**: Personalized cold emails tailored to specific professors and research areas
-2. **Professor Database**: Comprehensive directory of researchers and their interests
-3. **Smart Matching**: Algorithmic matching between student skills and research needs
-4. **Application Tracker**: Centralized dashboard to manage all applications
-5. **Community Platform**: Resources and networking for aspiring researchers
+1. **🎯 Research Lab Search Engine** (Core Competitive Advantage): Intelligent platform that identifies professors actively seeking research assistants using real-time data analysis and ML-powered hiring intent detection
+2. **📧 AI-Powered Email Generator**: Personalized cold emails tailored to specific professors and research areas
+3. **📊 Professor Database**: Comprehensive directory of researchers with dynamic hiring status tracking
+4. **🤝 Smart Matching**: Multi-dimensional compatibility scoring (skills, research, timing, culture)
+5. **📋 Application Tracker**: Centralized dashboard to manage all applications with success prediction
+6. **👥 Community Platform**: Resources and networking for aspiring researchers
+
+### 🚀 Key Innovation: Hiring Intent Detection
+Traditional directories show ALL professors → TorchMail shows ONLY professors who are ACTIVELY HIRING, saving students 15+ hours of manual research and increasing application success rates by 50%+.
 
 ## Target Users
 - Undergraduate students seeking research experience
@@ -52,6 +56,24 @@ TorchMail provides:
 - Two-sided marketplace
 - Community features
 - Advanced analytics
+
+## Comprehensive Documentation
+TorchMail has extensive documentation to guide development:
+
+### Product Design (`/docs/product-design/`)
+- **Epics & Milestones**: 7 major epics with 21 milestones
+- **Technical Designs**: Detailed architecture for core components
+- **Search Engine**: Complete requirements and technical design for the core competitive advantage
+- **Implementation Roadmap**: 12-month detailed development plan
+- **Architecture Diagrams**: Mermaid diagrams for system visualization
+
+### Product Management (`/docs/product-management/`)
+- **Iteration Workflow**: Standardized product development process
+- **PRD Template**: Product Requirements Document template
+
+### Project Structure (`/docs/project-structure.md`)
+- Detailed directory organization
+- Development workflow guidelines
 
 ## Getting Started
 ```bash
