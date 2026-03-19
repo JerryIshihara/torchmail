@@ -51,7 +51,8 @@ CI (`.github/workflows/ci.yml`) now validates:
 
 Deploy workflow (`.github/workflows/deploy.yml`):
 - Push to `main`: triggers production deploy hooks
-- PR updates targeting `main`: triggers preview deploy hooks
+- Pushes to `feature/*`, `fix/*`, `chore/*`, `cursor/*`: trigger preview deploy hooks
+- PR updates targeting `main`: also trigger preview deploy hooks
 
 Configure these repository secrets:
 - `RAILWAY_PRODUCTION_DEPLOY_HOOK_URL`
