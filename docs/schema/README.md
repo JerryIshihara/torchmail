@@ -45,7 +45,7 @@ The SQL is standard PostgreSQL 14+ and works with:
 
 | Provider | Free tier | Setup guide |
 |----------|-----------|-------------|
-| [Supabase](https://supabase.com) | 500 MB, 2 projects | See `.env.example` |
+| **[Supabase](https://supabase.com) (active)** | 500 MB, 2 projects | See `.env.example` — host: `db.kladhymmcqkaezikjhen.supabase.co` |
 | [Neon](https://neon.tech) | 0.5 GB, branching | See `.env.example` |
 | Local Docker | Unlimited | `docker compose up -d` |
 
