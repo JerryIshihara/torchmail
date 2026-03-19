@@ -36,9 +36,31 @@ Table professors [headercolor: #3498db] {
   name          varchar(512) [not null]
   orcid         varchar(64)
   university_id integer [ref: > universities.id]
+  homepage_url  text [note: 'Professor home/profile URL for scraping bootstrap']
+  lab_url       text [note: 'Best-known lab homepage URL']
   created_at    timestamptz [default: `now()`]
 
   Note: '[MVP] Researchers discovered via paper search'
+}
+
+Table lab_hiring_signals [headercolor: #3498db] {
+  id               integer [pk, increment]
+  professor_id     integer [not null, ref: > professors.id]
+  lab_url          text [note: 'Lab/faculty page used as scrape entrypoint']
+  hiring_url       text [not null, note: 'URL that contains the hiring paragraph']
+  hiring_paragraph text [not null, note: 'Raw paragraph quoted verbatim from source page']
+  keywords_matched text[] [note: 'Hiring-intent keywords matched during extraction']
+  scraped_at       timestamptz [not null, default: `now()`]
+  expires_at       timestamptz [not null, note: 'TTL, default now()+7 days']
+  is_active        boolean [not null, default: true]
+
+  indexes {
+    professor_id
+    is_active
+    (professor_id, hiring_url) [unique]
+  }
+
+  Note: '[MVP] Cached hiring-intent quote per professor with 7-day refresh window'
 }
 
 Table research_opportunities [headercolor: #3498db] {

@@ -26,8 +26,25 @@ CREATE TABLE IF NOT EXISTS professors (
     name          VARCHAR(512) NOT NULL,
     orcid         VARCHAR(64),
     university_id INTEGER REFERENCES universities(id),
+    homepage_url  TEXT,
+    lab_url       TEXT,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS lab_hiring_signals (
+    id               SERIAL PRIMARY KEY,
+    professor_id     INTEGER NOT NULL REFERENCES professors(id),
+    lab_url          TEXT,
+    hiring_url       TEXT NOT NULL,
+    hiring_paragraph TEXT NOT NULL,
+    keywords_matched TEXT[],
+    scraped_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at       TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '7 days'),
+    is_active        BOOLEAN NOT NULL DEFAULT true,
+    UNIQUE (professor_id, hiring_url)
+);
+CREATE INDEX IF NOT EXISTS idx_hiring_signals_professor ON lab_hiring_signals(professor_id);
+CREATE INDEX IF NOT EXISTS idx_hiring_signals_active ON lab_hiring_signals(is_active) WHERE is_active;
 
 CREATE TABLE IF NOT EXISTS research_opportunities (
     id                 SERIAL PRIMARY KEY,
