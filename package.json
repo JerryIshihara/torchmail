@@ -1,0 +1,50 @@
+{
+  "name": "torchmail",
+  "version": "0.1.0",
+  "description": "SaaS platform to help students automate finding research assistant positions",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd src/frontend && npm run dev",
+    "dev:backend": "cd src/backend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd src/frontend && npm run build",
+    "build:backend": "cd src/backend && npm run build",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd src/frontend && npm test",
+    "test:backend": "cd src/backend && npm test",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "cd src/frontend && npm run lint",
+    "lint:backend": "cd src/backend && npm run lint",
+    "format": "prettier --write .",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "research",
+    "assistant",
+    "saas",
+    "ai",
+    "email",
+    "academic",
+    "students"
+  ],
+  "author": "Jerry Ishihara",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "husky": "^9.0.11",
+    "prettier": "^3.2.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JerryIshihara/torchmail.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JerryIshihara/torchmail/issues"
+  },
+  "homepage": "https://github.com/JerryIshihara/torchmail#readme"
+}
