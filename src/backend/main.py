@@ -54,12 +54,14 @@ def _latest_active_hiring_signal(professor: Professor | None) -> tuple[str | Non
         signal
         for signal in signals
         if bool(getattr(signal, "is_active", True))
-        and (getattr(signal, "expires_at", None) is None or getattr(signal, "expires_at") > now)
+        and ((expires_at := getattr(signal, "expires_at", None)) is None or expires_at > now)
     ]
     if not active_signals:
         return None, None
 
-    latest = max(active_signals, key=lambda signal: getattr(signal, "scraped_at", datetime.min.replace(tzinfo=timezone.utc)))
+    latest = max(
+        active_signals, key=lambda signal: getattr(signal, "scraped_at", datetime.min.replace(tzinfo=timezone.utc))
+    )
     return getattr(latest, "hiring_paragraph", None), getattr(latest, "hiring_url", None)
 
 
@@ -123,7 +125,9 @@ def _fetch_opportunity_by_id(session, opportunity_id: int) -> ResearchOpportunit
 
 
 def _build_search_response(query: str, opportunities: list[ResearchOpportunity], from_cache: bool) -> dict[str, Any]:
-    serialized = [_serialize_opportunity(opportunity, rank=index) for index, opportunity in enumerate(opportunities, start=1)]
+    serialized = [
+        _serialize_opportunity(opportunity, rank=index) for index, opportunity in enumerate(opportunities, start=1)
+    ]
     return {
         "query": query,
         "result_count": len(serialized),
