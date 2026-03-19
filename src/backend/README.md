@@ -16,6 +16,12 @@ uvicorn src.backend.main:app --reload
 - `GET /api/search?q=machine+learning&countries=US,GB`
 - `GET /api/search/{id}`
 
+## Deploy (Railway)
+
+- Railway project/runtime config is in `railway.toml`.
+- Fallback process definition is in `Procfile`.
+- Required environment variables: `DATABASE_URL`, `OPENALEX_EMAIL`, `BACKEND_CORS_ORIGINS`.
+
 ## Hiring signal backfill
 
 `GET /api/search` returns immediately, then schedules a background scraper that:

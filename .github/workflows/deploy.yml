@@ -1,0 +1,67 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-production:
+    name: Deploy production
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Railway production deploy hook
+        env:
+          HOOK_URL: ${{ secrets.RAILWAY_PRODUCTION_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "RAILWAY_PRODUCTION_DEPLOY_HOOK_URL is not configured; skipping."
+            exit 0
+          fi
+          curl --fail --show-error --silent -X POST "$HOOK_URL"
+          echo "Railway production deploy triggered."
+
+      - name: Trigger Vercel production deploy hook
+        env:
+          HOOK_URL: ${{ secrets.VERCEL_PRODUCTION_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "VERCEL_PRODUCTION_DEPLOY_HOOK_URL is not configured; skipping."
+            exit 0
+          fi
+          curl --fail --show-error --silent -X POST "$HOOK_URL"
+          echo "Vercel production deploy triggered."
+
+  deploy-preview:
+    name: Deploy preview
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Railway preview deploy hook
+        env:
+          HOOK_URL: ${{ secrets.RAILWAY_PREVIEW_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "RAILWAY_PREVIEW_DEPLOY_HOOK_URL is not configured; skipping."
+            exit 0
+          fi
+          curl --fail --show-error --silent -X POST "$HOOK_URL"
+          echo "Railway preview deploy triggered."
+
+      - name: Trigger Vercel preview deploy hook
+        env:
+          HOOK_URL: ${{ secrets.VERCEL_PREVIEW_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "VERCEL_PREVIEW_DEPLOY_HOOK_URL is not configured; skipping."
+            exit 0
+          fi
+          curl --fail --show-error --silent -X POST "$HOOK_URL"
+          echo "Vercel preview deploy triggered."

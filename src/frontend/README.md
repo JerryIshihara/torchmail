@@ -20,3 +20,9 @@ Set `VITE_API_BASE_URL` to point to the FastAPI server.
 ```bash
 VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev
 ```
+
+## Deploy (Vercel)
+
+- The repository root includes `vercel.json` configured for this Vite app.
+- Set `VITE_API_BASE_URL` in Vercel to your deployed backend URL.
+- Production build command is `npm run build` and output is `dist/`.
