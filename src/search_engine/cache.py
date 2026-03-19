@@ -20,7 +20,7 @@ from .db import (
     SearchCacheResult,
     University,
 )
-from .search import AuthorRecord
+from .search import AuthorRecord, boosted_composite_score, normalize_country_codes
 
 
 def _normalise_query(query: str) -> str:
@@ -31,9 +31,17 @@ def _hash_query(query: str) -> str:
     return hashlib.sha256(_normalise_query(query).encode()).hexdigest()
 
 
-def lookup(session: Session, query: str) -> list[ResearchOpportunity] | None:
+def _cache_key(query: str, countries: list[str] | None = None) -> str:
+    key = _normalise_query(query)
+    country_codes = normalize_country_codes(countries)
+    if not country_codes:
+        return key
+    return f"{key}::countries={','.join(country_codes)}"
+
+
+def lookup(session: Session, query: str, countries: list[str] | None = None) -> list[ResearchOpportunity] | None:
     """Return cached opportunities for *query*, or None on cache miss / expiry."""
-    qhash = _hash_query(query)
+    qhash = _hash_query(_cache_key(query, countries))
     now = datetime.now(timezone.utc)
 
     entry = session.query(SearchCache).filter(SearchCache.query_hash == qhash, SearchCache.expires_at > now).first()
@@ -58,9 +66,11 @@ def store(
     session: Session,
     query: str,
     authors: list[AuthorRecord],
+    countries: list[str] | None = None,
 ) -> list[ResearchOpportunity]:
     """Persist search results and create a cache entry. Returns the stored opportunities."""
-    qhash = _hash_query(query)
+    cache_key = _cache_key(query, countries)
+    qhash = _hash_query(cache_key)
 
     old = session.query(SearchCache).filter(SearchCache.query_hash == qhash).first()
     if old:
@@ -81,7 +91,7 @@ def store(
             total_citations=author.total_citations,
             latest_paper_date=author.latest_paper_date,
             latest_paper_title=author.latest_paper_title,
-            composite_score=round(author.composite_score(), 4),
+            composite_score=round(boosted_composite_score(author), 4),
         )
         session.add(opp)
         session.flush()
@@ -90,7 +100,7 @@ def store(
     now = datetime.now(timezone.utc)
     cache_entry = SearchCache(
         query_hash=qhash,
-        raw_query=_normalise_query(query),
+        raw_query=cache_key,
         created_at=now,
         expires_at=now + timedelta(hours=config.CACHE_TTL_HOURS),
     )

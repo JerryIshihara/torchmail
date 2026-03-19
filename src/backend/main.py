@@ -13,11 +13,11 @@ from sqlalchemy.orm import joinedload
 try:
     from src.search_engine import cache
     from src.search_engine.db import Professor, ResearchOpportunity, SearchCacheResult, get_session, init_db
-    from src.search_engine.search import fetch_opportunities
+    from src.search_engine.search import fetch_opportunities, is_priority_country, normalize_country_codes
 except ModuleNotFoundError:
     from search_engine import cache
     from search_engine.db import Professor, ResearchOpportunity, SearchCacheResult, get_session, init_db
-    from search_engine.search import fetch_opportunities
+    from search_engine.search import fetch_opportunities, is_priority_country, normalize_country_codes
 
 app = FastAPI(title="TorchMail Search API", version="0.1.0")
 
@@ -69,6 +69,7 @@ def _serialize_opportunity(opportunity: ResearchOpportunity, rank: int | None = 
     professor = opportunity.professor
     university = professor.university if professor else None
     hiring_paragraph, hiring_url = _latest_active_hiring_signal(professor)
+    country_code = university.country_code if university else None
 
     return {
         "id": opportunity.id,
@@ -90,19 +91,24 @@ def _serialize_opportunity(opportunity: ResearchOpportunity, rank: int | None = 
         "composite_score": opportunity.composite_score,
         "hiring_paragraph": hiring_paragraph,
         "hiring_url": hiring_url,
+        "is_priority_country": is_priority_country(country_code),
     }
 
 
-def _run_search_pipeline(session, query: str) -> tuple[list[ResearchOpportunity], bool]:
-    cached = cache.lookup(session, query)
+def _run_search_pipeline(
+    session,
+    query: str,
+    countries: list[str] | None = None,
+) -> tuple[list[ResearchOpportunity], bool]:
+    cached = cache.lookup(session, query, countries=countries)
     if cached is not None:
         return cached, True
 
-    authors = fetch_opportunities(query)
+    authors = fetch_opportunities(query, countries=countries)
     if not authors:
         return [], False
 
-    return cache.store(session, query, authors), False
+    return cache.store(session, query, authors, countries=countries), False
 
 
 def _get_rank_for_opportunity(session, opportunity_id: int) -> int | None:
@@ -124,16 +130,32 @@ def _fetch_opportunity_by_id(session, opportunity_id: int) -> ResearchOpportunit
     )
 
 
-def _build_search_response(query: str, opportunities: list[ResearchOpportunity], from_cache: bool) -> dict[str, Any]:
+def _build_search_response(
+    query: str,
+    opportunities: list[ResearchOpportunity],
+    from_cache: bool,
+    countries: list[str] | None = None,
+) -> dict[str, Any]:
     serialized = [
         _serialize_opportunity(opportunity, rank=index) for index, opportunity in enumerate(opportunities, start=1)
     ]
+    priority_count = sum(1 for item in serialized if item["is_priority_country"])
+    other_count = len(serialized) - priority_count
     return {
         "query": query,
+        "countries": countries or [],
         "result_count": len(serialized),
         "from_cache": from_cache,
+        "priority_count": priority_count,
+        "other_count": other_count,
         "results": serialized,
     }
+
+
+def _parse_countries_param(countries_param: str | None) -> list[str]:
+    if not countries_param:
+        return []
+    return normalize_country_codes(countries_param.split(","))
 
 
 @app.get("/api/health")
@@ -142,15 +164,19 @@ def health() -> dict[str, Any]:
 
 
 @app.get("/api/search")
-def search(q: str = Query(..., min_length=1)) -> dict[str, Any]:
+def search(
+    q: str = Query(..., min_length=1),
+    countries: str | None = Query(None, description="Comma-separated ISO country codes (e.g. US,GB)"),
+) -> dict[str, Any]:
     query = q.strip()
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
+    country_filter = _parse_countries_param(countries)
 
     session = get_session()
     try:
-        opportunities, from_cache = _run_search_pipeline(session, query)
-        return _build_search_response(query, opportunities, from_cache)
+        opportunities, from_cache = _run_search_pipeline(session, query, countries=country_filter)
+        return _build_search_response(query, opportunities, from_cache, countries=country_filter)
     finally:
         session.close()
 

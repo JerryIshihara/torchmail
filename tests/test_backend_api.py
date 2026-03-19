@@ -53,7 +53,7 @@ def test_health_endpoint(monkeypatch):
 def test_search_endpoint_uses_pipeline_and_returns_structured_json(monkeypatch):
     opportunity = _make_opportunity()
     monkeypatch.setattr(backend_main, "get_session", lambda: DummySession())
-    monkeypatch.setattr(backend_main, "_run_search_pipeline", lambda session, query: ([opportunity], True))
+    monkeypatch.setattr(backend_main, "_run_search_pipeline", lambda session, query, countries: ([opportunity], True))
 
     with _build_client(monkeypatch) as client:
         response = client.get("/api/search", params={"q": "  genome analysis  "})
@@ -61,15 +61,40 @@ def test_search_endpoint_uses_pipeline_and_returns_structured_json(monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert payload["query"] == "genome analysis"
+    assert payload["countries"] == []
     assert payload["result_count"] == 1
     assert payload["from_cache"] is True
+    assert payload["priority_count"] == 1
+    assert payload["other_count"] == 0
     assert payload["results"][0]["rank"] == 1
     assert payload["results"][0]["professor"]["name"] == "Dr. Jane Smith"
+    assert payload["results"][0]["is_priority_country"] is True
+
+
+def test_search_endpoint_parses_country_filters(monkeypatch):
+    opportunity = _make_opportunity()
+    monkeypatch.setattr(backend_main, "get_session", lambda: DummySession())
+    captured: dict[str, object] = {}
+
+    def fake_pipeline(session, query, countries):
+        captured["query"] = query
+        captured["countries"] = countries
+        return [opportunity], False
+
+    monkeypatch.setattr(backend_main, "_run_search_pipeline", fake_pipeline)
+
+    with _build_client(monkeypatch) as client:
+        response = client.get("/api/search", params={"q": "genome analysis", "countries": "us, gb ,US"})
+
+    assert response.status_code == 200
+    assert captured == {"query": "genome analysis", "countries": ["US", "GB"]}
+    payload = response.json()
+    assert payload["countries"] == ["US", "GB"]
 
 
 def test_search_endpoint_rejects_blank_query(monkeypatch):
     monkeypatch.setattr(backend_main, "get_session", lambda: DummySession())
-    monkeypatch.setattr(backend_main, "_run_search_pipeline", lambda session, query: ([], False))
+    monkeypatch.setattr(backend_main, "_run_search_pipeline", lambda session, query, countries: ([], False))
 
     with _build_client(monkeypatch) as client:
         response = client.get("/api/search", params={"q": "   "})
