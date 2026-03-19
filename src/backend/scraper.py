@@ -21,7 +21,7 @@ except ModuleNotFoundError:
 REQUEST_TIMEOUT_SECONDS = 10.0
 RATE_LIMIT_SECONDS = 0.6
 MAX_CANDIDATE_LINKS = 6
-MAX_PROFILE_URL_CANDIDATES = 8
+MAX_PROFILE_URL_CANDIDATES = 12
 USER_AGENT = "TorchMailBot/0.1 (+https://github.com/JerryIshihara/torchmail)"
 
 HIRING_KEYWORDS = [
@@ -248,7 +248,11 @@ def fetch_openalex_institution_homepage(university_name: str | None, country_cod
 
 
 def _name_tokens(professor_name: str) -> list[str]:
-    return [token.lower() for token in re.findall(r"[A-Za-z]+", professor_name)]
+    tokens = [token.lower() for token in re.findall(r"[A-Za-z]+", professor_name)]
+    honorifics = {"dr", "prof", "professor", "mr", "mrs", "ms"}
+    while tokens and tokens[0] in honorifics:
+        tokens.pop(0)
+    return tokens
 
 
 def _professor_profile_candidates(base_url: str, professor_name: str) -> list[str]:
