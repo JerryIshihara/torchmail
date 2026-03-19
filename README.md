@@ -71,9 +71,9 @@ TorchMail has extensive documentation to guide development:
 - **Iteration Workflow**: Standardized product development process
 - **PRD Template**: Product Requirements Document template
 
-### Project Structure (`/docs/project-structure.md`)
-- Detailed directory organization
-- Development workflow guidelines
+### Development Processes (`/docs/`)
+- **PR Process**: Pull Request creation, review, and merge workflows
+- **Project Structure**: Detailed directory organization and development guidelines
 
 ## Getting Started
 ```bash
