@@ -49,6 +49,7 @@
 | [#28](https://github.com/JerryIshihara/torchmail/issues/28) | **Frontend** | Single-page search UI with results list + hiring blockquotes |
 | [#29](https://github.com/JerryIshihara/torchmail/issues/29) | **Database schema** | Add `lab_hiring_signals` table, update DBML/SQL |
 | [#30](https://github.com/JerryIshihara/torchmail/issues/30) | **Deploy** | Vercel + Railway + Supabase, CI/CD |
+| [#33](https://github.com/JerryIshihara/torchmail/issues/33) | **CI/CD** | Lint, test, build, security checks on every PR |
 
 ---
 
@@ -201,6 +202,21 @@ Table lab_hiring_signals {
 
 Plus two new columns on `professors`: `homepage_url` and `lab_url`.
 
+### 7. CI/CD (#33)
+
+GitHub Actions pipeline (`.github/workflows/ci.yml`) runs on every push to `main`
+and every PR targeting `main`:
+
+| Job | Tool | What it checks |
+|-----|------|----------------|
+| **Lint** | `ruff check` + `ruff format` | Code style, import order, common bugs |
+| **Test** | `pytest` | Unit tests in `tests/` |
+| **Build** | Python import + CLI | All modules load, CLI entry point works |
+| **Security** | `bandit` + `safety` | Code vulnerabilities, dependency CVEs |
+
+A separate workflow (`.github/workflows/auto-add-bugs-to-board.yml`) watches for
+issues labeled `bug` and auto-adds them to the project board.
+
 ### 6. Deploy (#30)
 
 | Service | Provider | Cost |
@@ -226,7 +242,10 @@ Total: **$0–5/month**.
 | Region-prioritized ranking | **New** | Modify `search.py` or post-process in API |
 | Lab hiring scraper | **New** | `src/backend/scraper.py` |
 | Frontend | **New** | `src/frontend/` |
-| Deployment config | **New** | `railway.toml`, `vercel.json`, GitHub Actions |
+| CI/CD pipeline | **New** | `.github/workflows/ci.yml`, `.github/workflows/auto-add-bugs-to-board.yml` |
+| Ruff lint config | **New** | `ruff.toml` |
+| Unit tests | **New** | `tests/test_search.py` |
+| Deployment config | **New** | `railway.toml`, `vercel.json` |
 
 ---
 
@@ -266,10 +285,21 @@ These are explicitly **not** part of this MVP:
 | **Priority** | P0 — Critical Path · P1 — High · P2 — Normal |
 | **Track** | A — Backend · B — Frontend · C — Scraper · D — Deploy |
 
+### Board rules
+
+| Rule | Trigger | Action |
+|------|---------|--------|
+| **Bug auto-add** | Issue opened or labeled with `bug` | Automatically added to the Search MVP board |
+| **CI/CD gating** | Every PR targeting `main` | Must pass lint, test, build, and security checks before merge |
+
+The bug auto-add rule is implemented via `.github/workflows/auto-add-bugs-to-board.yml`
+and requires a `GH_PROJECT_TOKEN` repository secret with `project` scope.
+
 ### Current board state
 
 | Issue | Status | Priority | Track |
 |-------|--------|----------|-------|
+| #33 CI/CD | In Progress | P0 | D — Deploy |
 | #29 DB schema | Todo | P0 | A — Backend |
 | #25 Backend API | Todo | P0 | A — Backend |
 | #26 Region ranking | Backlog | P1 | A — Backend |
@@ -279,10 +309,11 @@ These are explicitly **not** part of this MVP:
 
 ### Execution order
 
-1. Start **#29** (schema) and **#25** (backend API) simultaneously — both are P0
-2. **#26** (region ranking) and **#28** (frontend with mock data) can start right after
-3. **#27** (scraper) needs #25 done first
-4. **#30** (deploy) is last
+1. **#33** (CI/CD) — in progress, protects all future PRs
+2. Start **#29** (schema) and **#25** (backend API) simultaneously — both are P0
+3. **#26** (region ranking) and **#28** (frontend with mock data) can start right after
+4. **#27** (scraper) needs #25 done first
+5. **#30** (deploy) is last
 
 ---
 

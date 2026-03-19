@@ -1,0 +1,19 @@
+name: Auto-add bug issues to project board
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  add-bug-to-board:
+    if: contains(github.event.issue.labels.*.name, 'bug')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+      repository-projects: write
+    steps:
+      - name: Add issue to Search MVP project board
+        uses: actions/add-to-project@v1
+        with:
+          project-url: https://github.com/users/JerryIshihara/projects/7
+          github-token: ${{ secrets.GH_PROJECT_TOKEN }}

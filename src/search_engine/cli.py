@@ -21,9 +21,9 @@ def _db_label() -> str:
     try:
         p = urlparse(config.DATABASE_URL)
         host = p.hostname or "unknown"
-        if any(s in host for s in ("supabase", )):
+        if any(s in host for s in ("supabase",)):
             return f"Supabase ({host})"
-        if any(s in host for s in ("neon", )):
+        if any(s in host for s in ("neon",)):
             return f"Neon ({host})"
         if host in ("localhost", "127.0.0.1"):
             return f"local ({host}:{p.port or 5432})"
@@ -83,15 +83,17 @@ def stats():
     session = get_session()
     from .db import Professor, ResearchOpportunity, SearchCache, University
 
-    console.print(Panel(
-        f"Provider:      {_db_label()}\n"
-        f"Universities:  {session.query(University).count()}\n"
-        f"Professors:    {session.query(Professor).count()}\n"
-        f"Opportunities: {session.query(ResearchOpportunity).count()}\n"
-        f"Cache entries: {session.query(SearchCache).count()}",
-        title="Database Stats",
-        border_style="cyan",
-    ))
+    console.print(
+        Panel(
+            f"Provider:      {_db_label()}\n"
+            f"Universities:  {session.query(University).count()}\n"
+            f"Professors:    {session.query(Professor).count()}\n"
+            f"Opportunities: {session.query(ResearchOpportunity).count()}\n"
+            f"Cache entries: {session.query(SearchCache).count()}",
+            title="Database Stats",
+            border_style="cyan",
+        )
+    )
     session.close()
 
 

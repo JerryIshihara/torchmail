@@ -26,8 +26,7 @@ def show_banner():
 def show_results(opportunities: list[ResearchOpportunity], query: str, from_cache: bool):
     source = "[green]cached[/green]" if from_cache else "[yellow]live[/yellow]"
     console.print(
-        f"\n  Found [bold]{len(opportunities)}[/bold] opportunities "
-        f"for [italic]\"{query}\"[/italic]  ({source})\n"
+        f'\n  Found [bold]{len(opportunities)}[/bold] opportunities for [italic]"{query}"[/italic]  ({source})\n'
     )
 
     table = Table(

@@ -36,11 +36,7 @@ def lookup(session: Session, query: str) -> list[ResearchOpportunity] | None:
     qhash = _hash_query(query)
     now = datetime.now(timezone.utc)
 
-    entry = (
-        session.query(SearchCache)
-        .filter(SearchCache.query_hash == qhash, SearchCache.expires_at > now)
-        .first()
-    )
+    entry = session.query(SearchCache).filter(SearchCache.query_hash == qhash, SearchCache.expires_at > now).first()
     if entry is None:
         return None
 
@@ -48,9 +44,9 @@ def lookup(session: Session, query: str) -> list[ResearchOpportunity] | None:
         session.query(SearchCacheResult)
         .filter(SearchCacheResult.cache_id == entry.id)
         .options(
-            joinedload(SearchCacheResult.opportunity).joinedload(
-                ResearchOpportunity.professor
-            ).joinedload(Professor.university)
+            joinedload(SearchCacheResult.opportunity)
+            .joinedload(ResearchOpportunity.professor)
+            .joinedload(Professor.university)
         )
         .order_by(SearchCacheResult.rank)
         .all()
@@ -122,11 +118,7 @@ def store(
 def _get_or_create_university(session: Session, author: AuthorRecord) -> University | None:
     if not author.institution_id:
         return None
-    uni = (
-        session.query(University)
-        .filter(University.openalex_id == author.institution_id)
-        .first()
-    )
+    uni = session.query(University).filter(University.openalex_id == author.institution_id).first()
     if uni:
         return uni
     uni = University(
@@ -140,14 +132,8 @@ def _get_or_create_university(session: Session, author: AuthorRecord) -> Univers
     return uni
 
 
-def _get_or_create_professor(
-    session: Session, author: AuthorRecord, university: University | None
-) -> Professor:
-    prof = (
-        session.query(Professor)
-        .filter(Professor.openalex_id == author.openalex_id)
-        .first()
-    )
+def _get_or_create_professor(session: Session, author: AuthorRecord, university: University | None) -> Professor:
+    prof = session.query(Professor).filter(Professor.openalex_id == author.openalex_id).first()
     if prof:
         return prof
     prof = Professor(
