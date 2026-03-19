@@ -28,8 +28,8 @@ else
     echo "✅ Correct workspace location"
 fi
 
-# Check git remote
-if [ -d ".git" ]; then
+# Check git remote (works for both regular repos and submodules)
+if [ -f ".git" ] || [ -d ".git" ]; then
     REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "No git remote")
     echo "Git remote: $REMOTE_URL"
     
