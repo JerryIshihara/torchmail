@@ -245,26 +245,44 @@ These are explicitly **not** part of this MVP:
 
 ---
 
-## GitHub Project Board Setup
+## GitHub Project Board
 
-1. Go to https://github.com/JerryIshihara/torchmail → **Projects** → **New project**
-2. Choose **Board** template → name it **Search MVP**
-3. Create columns:
+**Live board**: [Search MVP — GitHub Project](https://github.com/users/JerryIshihara/projects/7)
 
-| Column | Issues |
-|--------|--------|
-| **Backlog** | — |
-| **To Do** | #29 (DB schema) |
-| **In Progress** | — |
-| **In Review** | — |
-| **Done** | — |
+### Columns
 
-4. Add all 6 issues (#25–#30) to the project
-5. Suggested execution order:
-   - Start #29 (schema) and #25 (backend API) simultaneously
-   - #26 (region ranking) and #28 (frontend with mock data) can start right after
-   - #27 (scraper) needs #25 done first
-   - #30 (deploy) is last
+| Column | Meaning |
+|--------|---------|
+| **Backlog** | Blocked by upstream dependencies |
+| **Todo** | Ready to start |
+| **In Progress** | Actively being worked on |
+| **In Review** | PR open, awaiting review |
+| **Done** | Complete and merged |
+
+### Custom fields
+
+| Field | Options |
+|-------|---------|
+| **Priority** | P0 — Critical Path · P1 — High · P2 — Normal |
+| **Track** | A — Backend · B — Frontend · C — Scraper · D — Deploy |
+
+### Current board state
+
+| Issue | Status | Priority | Track |
+|-------|--------|----------|-------|
+| #29 DB schema | Todo | P0 | A — Backend |
+| #25 Backend API | Todo | P0 | A — Backend |
+| #26 Region ranking | Backlog | P1 | A — Backend |
+| #28 Frontend | Backlog | P1 | B — Frontend |
+| #27 Lab hiring scraper | Backlog | P1 | C — Scraper |
+| #30 Deploy | Backlog | P2 | D — Deploy |
+
+### Execution order
+
+1. Start **#29** (schema) and **#25** (backend API) simultaneously — both are P0
+2. **#26** (region ranking) and **#28** (frontend with mock data) can start right after
+3. **#27** (scraper) needs #25 done first
+4. **#30** (deploy) is last
 
 ---
 

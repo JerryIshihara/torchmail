@@ -2,6 +2,8 @@
 
 > **Active scope: Search MVP only.** See [`SEARCH_MVP_PROJECT.md`](./SEARCH_MVP_PROJECT.md) for the full plan.
 
+**GitHub Project Board**: [Search MVP](https://github.com/users/JerryIshihara/projects/7)
+
 ---
 
 ## Active Issues
