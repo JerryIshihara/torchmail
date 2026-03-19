@@ -96,6 +96,15 @@ python -m pip install -r src/backend/requirements.txt
 uvicorn src.backend.main:app --reload
 ```
 
+### Search Frontend (Vite + React + Tailwind)
+```bash
+cd src/frontend
+npm install
+npm run dev
+```
+
+The frontend runs at `http://127.0.0.1:5173` and proxies `/api/*` to `http://127.0.0.1:8000` by default.
+
 ```bash
 # Search globally (priority countries are ranked first)
 curl "http://127.0.0.1:8000/api/search?q=machine%20learning"
