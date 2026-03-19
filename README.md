@@ -113,6 +113,13 @@ curl "http://127.0.0.1:8000/api/search?q=machine%20learning"
 curl "http://127.0.0.1:8000/api/search?q=machine%20learning&countries=US,GB"
 ```
 
+## Deployment
+
+- Production deployment runbook: `docs/deployment/search-mvp-production.md`
+- Railway backend config: `railway.toml` and `Procfile`
+- Vercel frontend config: `vercel.json`
+- Combined Python dependencies for hosted deploys: `requirements.txt`
+
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 

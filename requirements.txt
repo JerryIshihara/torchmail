@@ -1,0 +1,2 @@
+-r src/search_engine/requirements.txt
+-r src/backend/requirements.txt
