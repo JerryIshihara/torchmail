@@ -30,7 +30,7 @@ def test_hiring_signal_expiry_default_is_ttl_based(monkeypatch):
     default_callable = search_db.LabHiringSignal.__table__.columns["expires_at"].default.arg
 
     before = datetime.now(timezone.utc)
-    expires_at = default_callable()
+    expires_at = default_callable(None)
     after = datetime.now(timezone.utc)
 
     expected_min = before + timedelta(days=7) - timedelta(seconds=1)
