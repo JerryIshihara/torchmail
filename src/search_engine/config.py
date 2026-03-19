@@ -32,3 +32,10 @@ SEARCH_RESULT_LIMIT = 50
 OPENALEX_PAGES_TO_FETCH = 3
 OPENALEX_PER_PAGE = 200
 PUBLICATION_LOOKBACK_YEARS = 2
+
+PRIORITY_COUNTRIES = [
+    code.strip().upper()
+    for code in os.getenv("PRIORITY_COUNTRIES", "US,GB,HK,SG").split(",")
+    if code.strip()
+]
+PRIORITY_COUNTRY_BOOST = float(os.getenv("PRIORITY_COUNTRY_BOOST", "15"))

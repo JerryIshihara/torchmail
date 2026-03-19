@@ -96,6 +96,14 @@ python -m pip install -r src/backend/requirements.txt
 uvicorn src.backend.main:app --reload
 ```
 
+```bash
+# Search globally (priority countries are ranked first)
+curl "http://127.0.0.1:8000/api/search?q=machine%20learning"
+
+# Optional country scoping (comma-separated ISO country codes)
+curl "http://127.0.0.1:8000/api/search?q=machine%20learning&countries=US,GB"
+```
+
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
