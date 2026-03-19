@@ -69,14 +69,47 @@ class AuthorRecord:
         return (0.40 * relevance) + (0.30 * activity) + (0.20 * citation_score) + (0.10 * recency)
 
 
-def _build_params(query: str, page: int) -> dict:
+def normalize_country_codes(countries: list[str] | None) -> list[str]:
+    """Return unique uppercase country codes preserving input order."""
+    if not countries:
+        return []
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for country in countries:
+        code = country.strip().upper()
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        normalized.append(code)
+    return normalized
+
+
+def is_priority_country(country_code: str | None, priority_country_codes: set[str] | None = None) -> bool:
+    if not country_code:
+        return False
+    priority_codes = priority_country_codes or set(normalize_country_codes(config.PRIORITY_COUNTRIES))
+    return country_code.upper() in priority_codes
+
+
+def boosted_composite_score(author: AuthorRecord, priority_country_codes: set[str] | None = None) -> float:
+    score = author.composite_score()
+    if is_priority_country(author.institution_country, priority_country_codes):
+        score += config.PRIORITY_COUNTRY_BOOST
+    return score
+
+
+def _build_params(query: str, page: int, countries: list[str] | None = None) -> dict:
     today = datetime.utcnow()
     from_year = today.year - config.PUBLICATION_LOOKBACK_YEARS
     from_date = f"{from_year}-01-01"
+    filters = [f"from_publication_date:{from_date}"]
+    if countries:
+        filters.append(f"institutions.country_code:{'|'.join(countries)}")
 
     params: dict = {
         "search": query,
-        "filter": f"from_publication_date:{from_date}",
+        "filter": ",".join(filters),
         "sort": "relevance_score:desc",
         "per_page": config.OPENALEX_PER_PAGE,
         "page": page,
@@ -86,13 +119,15 @@ def _build_params(query: str, page: int) -> dict:
     return params
 
 
-def fetch_opportunities(query: str, on_progress=None) -> list[AuthorRecord]:
+def fetch_opportunities(query: str, on_progress=None, countries: list[str] | None = None) -> list[AuthorRecord]:
     """Fetch papers from OpenAlex and aggregate into per-author opportunity records."""
     authors: dict[str, AuthorRecord] = {}
+    country_codes = normalize_country_codes(countries)
+    priority_country_codes = set(normalize_country_codes(config.PRIORITY_COUNTRIES))
 
     with httpx.Client(timeout=30.0) as client:
         for page in range(1, config.OPENALEX_PAGES_TO_FETCH + 1):
-            params = _build_params(query, page)
+            params = _build_params(query, page, countries=country_codes)
             resp = client.get(f"{config.OPENALEX_BASE_URL}/works", params=params)
             resp.raise_for_status()
             data = resp.json()
@@ -138,5 +173,13 @@ def fetch_opportunities(query: str, on_progress=None) -> list[AuthorRecord]:
             if page < config.OPENALEX_PAGES_TO_FETCH:
                 time.sleep(0.15)
 
-    ranked = sorted(authors.values(), key=lambda a: a.composite_score(), reverse=True)
+    ranked = sorted(
+        authors.values(),
+        key=lambda author: (
+            is_priority_country(author.institution_country, priority_country_codes),
+            boosted_composite_score(author, priority_country_codes),
+            author.composite_score(),
+        ),
+        reverse=True,
+    )
     return ranked[: config.SEARCH_RESULT_LIMIT]
