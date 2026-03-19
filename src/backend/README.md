@@ -27,6 +27,7 @@ uvicorn src.backend.main:app --reload
 `GET /api/search` returns immediately, then schedules a background scraper that:
 
 - resolves lab/homepage URLs from existing professor metadata and OpenAlex author metadata
+- resolves lab/homepage URLs from existing professor metadata, OpenAlex author metadata, and OpenAlex institution metadata with faculty-page URL heuristics
 - follows targeted pages (`join`, `positions`, `hiring`, `openings`, etc.)
 - extracts raw hiring paragraphs and stores them in `lab_hiring_signals`
 
