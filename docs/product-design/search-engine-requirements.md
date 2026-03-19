@@ -1,498 +1,294 @@
-# Research Lab/PI Search Engine - Requirements Specification
+# Research Lab/PI Search Engine — Requirements Specification
 
-## Overview
-The Research Lab/PI Search Engine is the **core competitive advantage** of TorchMail. It helps students find professors and research labs that are actively seeking new research assistants, going beyond static directories to provide dynamic, actionable intelligence.
+## 1. Overview
 
-## Critical Success Factors
-1. **Accuracy**: >90% accuracy in identifying labs actively seeking RAs
-2. **Freshness**: Data updated within 7 days maximum
-3. **Relevance**: Results must match student's skills, interests, and timeline
-4. **Actionability**: Each result should include clear next steps
-5. **Comprehensiveness**: Cover >80% of research-active professors in target universities
+The Research Lab/PI Search Engine is the **core competitive advantage** of TorchMail. It helps students find professors and research labs that are actively seeking research assistants, going beyond static directories to provide dynamic, actionable intelligence.
 
-## Core Problem Statement
+### Critical Success Factors
 
-### Current Student Pain Points
-1. **Information Asymmetry**: Students don't know which labs are hiring
-2. **Static Directories**: Existing databases show all professors, not just those seeking RAs
-3. **Timing Mismatch**: Applications sent when labs aren't actively hiring
-4. **Fit Uncertainty**: Difficulty assessing if skills match lab needs
-5. **Process Inefficiency**: Manual research takes 20+ hours per student
-
-### Professor/Lab Pain Points
-1. **Visibility Gap**: Hard to reach qualified candidates
-2. **Screening Overhead**: 100+ applications to review for 1-2 positions
-3. **Timing Issues**: Need varies by grant cycles, graduation timelines
-4. **Skill Matching**: Difficulty finding students with specific technical skills
-
-## Functional Requirements
-
-### 1. Data Collection & Enrichment
-**FR-1.1**: Real-time detection of hiring intent
-- Monitor lab websites for "positions available", "join our lab", "openings" pages
-- Track grant announcements and funding opportunities
-- Analyze recent paper acknowledgments for new team members
-- Monitor lab social media for hiring announcements
-
-**FR-1.2**: Professor/Lab Profile Enrichment
-- Research focus and specialization areas
-- Current lab size and composition
-- Recent publications (last 2 years)
-- Active grants and funding sources
-- Lab culture and mentorship style indicators
-- Application preferences and processes
-
-**FR-1.3**: Temporal Intelligence
-- Academic hiring cycles by discipline
-- Grant award timelines
-- Student graduation timelines
-- Seasonal hiring patterns
-- Future hiring projections
-
-### 2. Search & Discovery
-**FR-2.1**: Multi-dimensional Search
-- By research area/keywords
-- By university/department
-- By lab size and composition
-- By funding availability
-- By application deadline
-- By skill requirements
-
-**FR-2.2**: Intelligent Filtering
-- "Actively hiring" filter (highest priority)
-- "Recently hired" filter (may be saturated)
-- "Expected to hire soon" based on signals
-- "Good fit for beginners" vs "advanced only"
-- "International student friendly"
-- "Remote/hybrid opportunities"
-
-**FR-2.3**: Relevance Ranking
-- Hiring intent score (0-100)
-- Skill match percentage
-- Research alignment score
-- Timeline compatibility
-- Historical success rate for similar students
-- Professor responsiveness rate
-
-### 3. Matching & Recommendations
-**FR-3.1**: Student Profile Analysis
-- Academic background and GPA
-- Technical skills and proficiencies
-- Research experience and publications
-- Career goals and interests
-- Availability timeline
-- Geographic preferences
-- Funding requirements
-
-**FR-3.2**: Compatibility Scoring
-- **Technical Fit** (40%): Skills match with lab requirements
-- **Research Fit** (30%): Interest alignment with lab focus
-- **Timing Fit** (20%): Availability matches hiring window
-- **Cultural Fit** (10%): Lab environment compatibility
-
-**FR-3.3**: Personalized Recommendations
-- Top 5 "Best Match" labs
-- 5 "Good Alternatives" with different strengths
-- 5 "Stretch Opportunities" for growth
-- 5 "Safety Options" with high acceptance rates
-- Dynamic ranking based on application history
-
-### 4. Action Intelligence
-**FR-4.1**: Application Readiness Assessment
-- Profile completeness score
-- Missing skills identification
-- Document quality assessment
-- Timeline optimization suggestions
-- Competitive positioning analysis
-
-**FR-4.2**: Strategic Application Planning
-- Optimal application timing
-- Portfolio gap recommendations
-- Networking opportunity identification
-- Interview preparation guidance
-- Follow-up strategy suggestions
-
-**FR-4.3**: Success Prediction
-- Probability of interview invitation
-- Estimated response time
-- Likely funding package range
-- Competitive landscape analysis
-- Risk assessment for each application
-
-## Non-Functional Requirements
-
-### 1. Performance
-**NFR-1.1**: Search Response Time
-- Initial search results: < 2 seconds
-- Filter updates: < 500ms
-- Detail page load: < 1 second
-- Recommendation generation: < 3 seconds
-
-**NFR-1.2**: Data Freshness
-- Hiring intent signals: Updated daily
-- Lab profiles: Updated weekly
-- Publication data: Updated monthly
-- Grant information: Updated as available
-
-**NFR-1.3**: Scalability
-- Support 10,000 concurrent users
-- Handle 100+ searches per second
-- Store 100,000+ lab profiles
-- Process 1M+ data points daily
-
-### 2. Accuracy & Quality
-**NFR-2.1**: Data Accuracy
-- Professor information: >95% accuracy
-- Lab hiring status: >90% accuracy
-- Research focus: >85% accuracy
-- Contact information: >80% accuracy
-
-**NFR-2.2**: Match Quality
-- Recommendation relevance: >80% user satisfaction
-- False positive rate (non-hiring labs shown as hiring): <5%
-- False negative rate (hiring labs missed): <10%
-- Skill match accuracy: >75%
-
-**NFR-2.3**: Coverage
-- Top 100 US research universities: 100%
-- STEM departments: >90%
-- Humanities/social sciences: >70%
-- International universities: >50% of top 100 global
-
-### 3. Usability
-**NFR-3.1**: User Experience
-- Zero-training needed interface
-- 3-click maximum to find relevant labs
-- Clear visual indicators of hiring status
-- Intuitive filtering and sorting
-- Mobile-responsive design
-
-**NFR-3.2**: Actionability
-- Clear next steps for each lab
-- Template emails pre-filled with lab context
-- Application checklist per lab
-- Deadline tracking and reminders
-- Progress visualization
-
-### 4. Reliability & Security
-**NFR-4.1**: Availability
-- 99.9% uptime
-- < 1 hour/month maintenance downtime
-- Graceful degradation during peak loads
-- Disaster recovery within 4 hours
-
-**NFR-4.2**: Data Security
-- Student data encryption at rest and in transit
-- GDPR/CCPA/FERPA compliance
-- Regular security audits
-- Data access logging and monitoring
-
-**NFR-4.3**: Ethical Considerations
-- Bias detection in matching algorithms
-- Transparency in ranking factors
-- User control over data usage
-- Fair access regardless of background
-
-## Data Sources & Integration Requirements
-
-### Primary Data Sources
-**IR-1**: University/Lab Websites
-- Faculty directory pages
-- Lab/research group pages
-- "Join us" / "Positions" pages
-- News and announcements
-
-**IR-2**: Research Databases
-- arXiv, PubMed, IEEE Xplore
-- Google Scholar profiles
-- ResearchGate, Academia.edu
-- ORCID profiles
-
-**IR-3**: Funding Databases
-- NSF, NIH grant databases
-- University research offices
-- Foundation grant announcements
-- Corporate research partnerships
-
-**IR-4**: Social & Professional Networks
-- Lab Twitter/X accounts
-- LinkedIn research groups
-- Academic conference proceedings
-- Department newsletters
-
-### Data Collection Methods
-**IR-5**: Web Scraping Infrastructure
-- Respectful crawling (robots.txt compliance)
-- Rate limiting and politeness delays
-- JavaScript-rendered content handling
-- CAPTCHA avoidance strategies
-
-**IR-6**: API Integrations
-- University directory APIs
-- Research database APIs (CrossRef, Semantic Scholar)
-- Grant database APIs
-- Social media APIs (with rate limits)
-
-**IR-7**: Manual Curation
-- Expert verification of high-value labs
-- User-submitted corrections
-- Community moderation
-- Quality assurance sampling
-
-## Technical Architecture Requirements
-
-### 1. Data Pipeline
-**TA-1.1**: Real-time Data Ingestion
-- Streaming data collection
-- Incremental updates
-- Change detection
-- Data validation
-
-**TA-1.2**: Processing Pipeline
-- Natural language processing for intent detection
-- Entity extraction and linking
-- Sentiment analysis for lab culture
-- Temporal pattern recognition
-
-**TA-1.3**: Storage Architecture
-- Hot storage for active data (Elasticsearch)
-- Warm storage for historical data (PostgreSQL)
-- Cold storage for archives (S3)
-- Cache layer for frequent queries (Redis)
-
-### 2. Search Infrastructure
-**TA-2.1**: Search Engine
-- Full-text search with synonyms
-- Faceted filtering
-- Geographic search
-- Temporal search
-
-**TA-2.2**: Ranking Algorithm
-- Multiple ranking signals
-- Personalization factors
-- Freshness weighting
-- Quality scoring
-
-**TA-2.3**: Recommendation Engine
-- Collaborative filtering
-- Content-based filtering
-- Hybrid approaches
-- A/B testing framework
-
-### 3. Machine Learning Requirements
-**ML-1**: Hiring Intent Detection
-- Binary classification: hiring vs not hiring
-- Confidence scoring
-- Feature importance explanation
-- Continuous learning from outcomes
-
-**ML-2**: Compatibility Prediction
-- Multi-label classification for skill matching
-- Regression for fit scoring
-- Ensemble methods for robustness
-- Fairness-aware training
-
-**ML-3**: Success Prediction
-- Survival analysis for response times
-- Probability calibration
-- Uncertainty estimation
-- Causal inference for interventions
-
-## User Experience Requirements
-
-### 1. Search Interface
-**UX-1.1**: Initial Search
-- Simple keyword search box
-- "I'm feeling lucky" quick match
-- Saved searches and alerts
-- Search history
-
-**UX-1.2**: Advanced Search
-- Multi-select filters
-- Range sliders (GPA, lab size, etc.)
-- Boolean operators
-- Saved filter combinations
-
-**UX-1.3**: Results Display
-- Card-based results with key info
-- Hiring status badges (urgent, active, passive)
-- Match score visualization
-- Quick action buttons
-
-### 2. Lab Profile Pages
-**UX-2.1**: Overview Section
-- Lab photo and description
-- Key hiring information
-- Quick stats (size, funding, etc.)
-- Action buttons (save, email, apply)
-
-**UX-2.2**: Detailed Information
-- Research focus and projects
-- Team composition
-- Publication highlights
-- Application process details
-
-**UX-2.3**: Compatibility Analysis
-- Skill match breakdown
-- Research alignment
-- Timeline compatibility
-- Suggested preparation steps
-
-### 3. Dashboard & Management
-**UX-3.1**: Saved Labs
-- Organize by priority
-- Add notes and reminders
-- Track application status
-- Compare labs side-by-side
-
-**UX-3.2**: Application Tracker
-- Timeline visualization
-- Document management
-- Communication history
-- Interview preparation
-
-**UX-3.3**: Progress Analytics
-- Application success rates
-- Skill gap analysis
-- Timeline optimization
-- Competitive positioning
-
-## Success Metrics & KPIs
-
-### 1. User Engagement Metrics
-**KPI-1.1**: Adoption
-- Daily active users (DAU)
-- Monthly active users (MAU)
-- User retention rate (30-day)
-- Feature adoption rate
-
-**KPI-1.2**: Usage
-- Searches per user per session
-- Labs saved per user
-- Applications started
-- Emails sent through platform
-
-**KPI-1.3**: Satisfaction
-- Net Promoter Score (NPS)
-- User satisfaction surveys
-- Feature request volume
-- Support ticket resolution time
-
-### 2. Quality Metrics
-**KPI-2.1**: Data Quality
-- Profile completeness rate
-- Data accuracy scores
-- Update frequency
-- User correction rate
-
-**KPI-2.2**: Search Quality
-- Click-through rate (CTR)
-- Time to first relevant result
-- Search abandonment rate
-- Filter usage patterns
-
-**KPI-2.3**: Match Quality
-- Application rate per recommendation
-- Interview invitation rate
-- User-reported match satisfaction
-- Algorithm accuracy scores
-
-### 3. Business Impact Metrics
-**KPI-3.1**: Student Outcomes
-- Application success rate improvement
-- Time saved in search process
-- Quality of match (student satisfaction)
-- Career impact measures
-
-**KPI-3.2**: Professor Outcomes
-- Quality of applicant pool
-- Time saved in screening
-- Hiring success rate
-- Satisfaction with platform
-
-**KPI-3.3**: Platform Growth
-- Database coverage growth
-- User growth rate
-- Revenue per user
-- Market share in target segments
-
-## Implementation Phases
-
-### Phase 1: MVP (Months 1-3)
-**Focus**: Basic search with manual data
-- Static database of 1,000 high-value labs
-- Manual "hiring status" tagging
-- Basic keyword search
-- Simple lab profiles
-
-### Phase 2: Enhanced (Months 4-6)
-**Focus**: Automated data collection
-- Web scraping for 10,000 labs
-- Automated hiring intent detection
-- Advanced search filters
-- Basic compatibility scoring
-
-### Phase 3: Intelligent (Months 7-9)
-**Focus**: AI-powered matching
-- Machine learning for hiring prediction
-- Personalized recommendations
-- Success probability scoring
-- Application strategy guidance
-
-### Phase 4: Comprehensive (Months 10-12)
-**Focus**: Full ecosystem
-- Real-time data updates
-- Advanced ML models
-- Integration with application tracking
-- Community features and networking
-
-## Risks & Mitigations
-
-### Technical Risks
-**Risk-1**: Data quality issues
-- **Mitigation**: Multi-source verification, user corrections, expert review
-
-**Risk-2**: Scaling challenges
-- **Mitigation**: Microservices architecture, caching, CDN, auto-scaling
-
-**Risk-3**: Algorithm bias
-- **Mitigation**: Fairness testing, diverse training data, transparency reports
-
-### Business Risks
-**Risk-4**: User adoption
-- **Mitigation**: Freemium model, university partnerships, proven ROI
-
-**Risk-5**: Data sourcing limitations
-- **Mitigation**: Multiple data sources, manual curation, community contributions
-
-**Risk-6**: Competitive response
-- **Mitigation**: First-mover advantage, network effects, continuous innovation
-
-### Operational Risks
-**Risk-7**: Legal compliance
-- **Mitigation**: Legal counsel, privacy by design, regular audits
-
-**Risk-8**: Cost management
-- **Mitigation**: Usage-based pricing, optimization, revenue diversification
-
-**Risk-9**: Team scaling
-- **Mitigation**: Clear documentation, automation, gradual hiring
-
-## Conclusion
-
-The Research Lab/PI Search Engine is not just a feature - it's the **core value proposition** of TorchMail. By solving the fundamental information asymmetry problem in academic hiring, we create 10x value for students and professors alike.
-
-Success requires:
-1. **Superior data** - more accurate, fresher, more comprehensive
-2. **Intelligent matching** - beyond keyword search to true compatibility
-3. **Actionable insights** - not just information, but clear next steps
-4. **Continuous improvement** - learning from outcomes to get better over time
-
-This engine will be the foundation upon which all other TorchMail features are built, creating a virtuous cycle where better search leads to more users, which leads to better data, which leads to better search.
+| Factor | Target |
+|--------|--------|
+| **Accuracy** | > 90% precision in identifying labs actively seeking RAs |
+| **Freshness** | Hiring-intent data updated within 7 days |
+| **Relevance** | Results match the student's skills, interests, and timeline |
+| **Actionability** | Every result includes clear next steps |
+| **Coverage** | > 80% of research-active professors at target universities |
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: March 19, 2026*  
-*Next Review: April 19, 2026*  
+## 2. Problem Statement
+
+### Student Pain Points
+
+1. **Information Asymmetry** — Students cannot tell which labs are hiring.
+2. **Static Directories** — Existing databases list all professors, not those seeking RAs.
+3. **Timing Mismatch** — Applications arrive when labs are not actively hiring.
+4. **Fit Uncertainty** — Hard to assess whether skills match lab needs.
+5. **Process Inefficiency** — Manual research takes 20+ hours per student.
+
+### Professor / Lab Pain Points
+
+1. **Visibility Gap** — Difficult to reach qualified candidates outside their own network.
+2. **Screening Overhead** — 100+ applications for 1–2 positions.
+3. **Timing Issues** — Hiring needs fluctuate with grant cycles and graduation timelines.
+4. **Skill Matching** — Difficult to find students with specific technical skills.
+
+---
+
+## 3. Functional Requirements
+
+### FR-1: Data Collection & Enrichment
+
+| ID | Requirement | Priority |
+|----|------------|----------|
+| FR-1.1 | **Hiring-intent detection** — Monitor lab websites for "positions available" / "join our lab" pages; track grant announcements; analyze publication acknowledgments for new team members; monitor social media for hiring posts. | P0 |
+| FR-1.2 | **Lab profile enrichment** — Automatically populate research focus, current lab size, recent publications (last 2 years), active grants, mentorship-style indicators, and application preferences. | P0 |
+| FR-1.3 | **Temporal intelligence** — Model academic hiring cycles by discipline, grant-award timelines, graduation schedules, seasonal patterns, and provide projected "likely to hire soon" estimates. | P1 |
+
+### FR-2: Search & Discovery
+
+| ID | Requirement | Priority |
+|----|------------|----------|
+| FR-2.1 | **Multi-dimensional search** — Support queries by research area / keywords, university / department, lab size, funding availability, application deadline, and skill requirements. | P0 |
+| FR-2.2 | **Intelligent filtering** — Provide faceted filters: "Actively hiring", "Expected to hire soon", "Good fit for beginners", "International-student friendly", "Remote / hybrid". | P0 |
+| FR-2.3 | **Relevance ranking** — Rank results by a composite score combining hiring-intent score (0–100), skill-match percentage, research alignment, timeline compatibility, and data freshness. | P0 |
+
+### FR-3: Matching & Recommendations
+
+| ID | Requirement | Priority |
+|----|------------|----------|
+| FR-3.1 | **Student profile analysis** — Capture academic background, skills, research experience, career goals, availability, geographic preferences, and funding needs. | P0 |
+| FR-3.2 | **Compatibility scoring** — Compute a weighted composite: Technical Fit (40%), Research Fit (30%), Timing Fit (20%), Cultural Fit (10%). | P1 |
+| FR-3.3 | **Personalized recommendations** — Surface categorized suggestions: "Best Match" (top 5), "Good Alternatives" (5), "Stretch Opportunities" (5), "Safety Options" (5). Dynamically re-rank as the student's application history grows. | P1 |
+
+### FR-4: Action Intelligence
+
+| ID | Requirement | Priority |
+|----|------------|----------|
+| FR-4.1 | **Application readiness assessment** — Score profile completeness, identify missing skills, flag incomplete documents, suggest timeline optimizations. | P1 |
+| FR-4.2 | **Strategic application planning** — Recommend optimal application timing, portfolio-gap improvements, networking opportunities, and follow-up strategies. | P2 |
+| FR-4.3 | **Success prediction** — Estimate interview-invitation probability, expected response time, competitive-landscape analysis, and per-application risk. | P2 |
+
+---
+
+## 4. Non-Functional Requirements
+
+### NFR-1: Performance
+
+| ID | Requirement | Target |
+|----|------------|--------|
+| NFR-1.1 | Search response time (P95) | < 2 s |
+| NFR-1.2 | Filter update response | < 500 ms |
+| NFR-1.3 | Lab detail page load | < 1 s |
+| NFR-1.4 | Recommendation generation | < 3 s |
+| NFR-1.5 | Hiring-intent signals freshness | Updated daily |
+| NFR-1.6 | Lab profiles freshness | Updated weekly |
+| NFR-1.7 | Concurrent users supported | 10,000 |
+| NFR-1.8 | Search throughput | 100+ req/s |
+| NFR-1.9 | Lab profile capacity | 100,000+ |
+
+### NFR-2: Accuracy & Quality
+
+| ID | Requirement | Target |
+|----|------------|--------|
+| NFR-2.1 | Professor information accuracy | > 95% |
+| NFR-2.2 | Hiring-status accuracy | > 90% |
+| NFR-2.3 | Research-focus accuracy | > 85% |
+| NFR-2.4 | False positive rate (non-hiring shown as hiring) | < 5% |
+| NFR-2.5 | False negative rate (hiring labs missed) | < 10% |
+| NFR-2.6 | Recommendation relevance (user-reported satisfaction) | > 80% |
+
+### NFR-3: Coverage (Year 1)
+
+| Segment | Target |
+|---------|--------|
+| Top 100 US R1 research universities | 100% |
+| STEM departments | > 90% |
+| Humanities / social sciences | > 70% |
+| Top 100 global universities (international) | > 50% |
+
+### NFR-4: Usability
+
+- Zero-training interface; 3 clicks maximum to reach relevant labs.
+- Visual hiring-status badges (urgent / active / passive).
+- Mobile-responsive layout.
+- Every lab result includes a clear "next step" call-to-action.
+- Deadline tracking and reminder notifications.
+
+### NFR-5: Reliability & Security
+
+| ID | Requirement | Target |
+|----|------------|--------|
+| NFR-5.1 | Service uptime | 99.9% |
+| NFR-5.2 | Planned maintenance downtime | < 1 h/month |
+| NFR-5.3 | Disaster recovery RTO | 4 hours |
+| NFR-5.4 | Encryption | At rest (AES-256) and in transit (TLS 1.3) |
+| NFR-5.5 | Compliance | GDPR, CCPA, FERPA |
+| NFR-5.6 | Security audits | Annual third-party pentest |
+
+### NFR-6: Ethical Considerations
+
+- Bias detection and mitigation in matching algorithms.
+- Transparent ranking factors (users can see why a lab is ranked where it is).
+- User control over data usage (opt-in to data sharing, ability to delete account and data).
+- Equal access regardless of background, university prestige, or demographic characteristics.
+
+---
+
+## 5. Data Sources & Integration
+
+### Primary Sources
+
+| ID | Source | Data Provided | Update Frequency |
+|----|--------|--------------|-----------------|
+| DS-1 | University / lab websites | Faculty directories, "join us" pages, news | Daily crawl |
+| DS-2 | Research databases (arXiv, PubMed, Semantic Scholar) | Publications, citations, co-authors | Weekly API poll |
+| DS-3 | Funding databases (NSF, NIH) | Grant awards, amounts, timelines | Weekly API poll |
+| DS-4 | Social / professional networks (X, LinkedIn, ResearchGate) | Hiring announcements, lab updates | Daily (rate-limited) |
+
+### Collection Principles
+
+- **Respectful crawling**: Obey `robots.txt`, apply polite delays (≥ 2 s between requests to the same host), identify the bot via `User-Agent`.
+- **API-first**: Prefer structured APIs (Semantic Scholar, CrossRef, NSF Awards API) over scraping when available.
+- **Manual curation**: Expert-verified data for the initial seed set and high-value labs; community-submitted corrections with moderation.
+- **JavaScript rendering**: Use headless browser (Playwright) for SPAs; fall back to static HTML parsing otherwise.
+
+---
+
+## 6. User Experience Requirements
+
+### Search Interface
+
+- Simple keyword search box with autocomplete.
+- "I'm feeling lucky" quick-match button.
+- Saved searches with email/push alerts when new matching labs appear.
+- Search history for logged-in users.
+
+### Results Display
+
+- Card-based layout showing lab name, professor, university, research areas, hiring badge, and compatibility score.
+- Expandable detail panel or dedicated profile page.
+- Quick-action buttons: Save, Email, Compare.
+
+### Lab Profile Pages
+
+- Overview: lab photo/logo, description, key stats (size, funding, publication count).
+- Hiring section: current openings, deadlines, required skills, application instructions.
+- Research section: active projects, recent publications, grant awards.
+- Compatibility analysis (for logged-in students): skill match, research alignment, preparation tips.
+
+### Dashboard & Management
+
+- Saved labs organized by user-defined priority.
+- Side-by-side lab comparison (up to 3).
+- Application timeline visualization.
+- Deadline reminders and status tracking.
+
+---
+
+## 7. Success Metrics & KPIs
+
+### User Engagement
+
+| Metric | Target (Month 6) |
+|--------|------------------|
+| Monthly active users (MAU) | 1,000+ |
+| Searches per user per session | > 5 |
+| Labs saved per user (cumulative) | > 10 |
+| 30-day retention | > 40% |
+
+### Search Quality
+
+| Metric | Target |
+|--------|--------|
+| Click-through rate (top-3 results) | > 25% |
+| Search abandonment rate | < 20% |
+| Time to first relevant click | < 30 s |
+| User-reported match satisfaction | > 4/5 |
+
+### Outcome Impact
+
+| Metric | Target (Year 1) |
+|--------|-----------------|
+| Application success-rate improvement over baseline | > 50% |
+| Estimated time saved per student | 15+ hours |
+| Platform-driven successful matches | 500+ |
+
+---
+
+## 8. Implementation Phases
+
+### Phase 1 — MVP (Months 1–3)
+
+**Focus**: Basic search with manually curated data.
+
+- Static database of ~1,000 high-value labs (top CS and STEM departments).
+- Manual hiring-status tagging by the team.
+- Keyword search + basic filters (university, department, hiring status).
+- Simple lab profile pages.
+- **Exit criteria**: 100 beta users, search P95 < 2 s, user satisfaction > 4/5.
+
+### Phase 2 — Automated Collection (Months 4–6)
+
+**Focus**: Scale data through web scraping and API integrations.
+
+- Automated crawling of lab websites for hiring signals.
+- Integration with Semantic Scholar and NSF awards APIs.
+- Expanded to ~10,000 labs.
+- Basic compatibility scoring (skill overlap + research alignment).
+- **Exit criteria**: > 85% hiring-status accuracy on a 200-lab audit, 1,000 MAU.
+
+### Phase 3 — Intelligent Matching (Months 7–9)
+
+**Focus**: ML-powered ranking and personalization.
+
+- Hiring-intent ML classifier (binary + confidence).
+- Personalized recommendations with compatibility breakdown.
+- Success-probability estimates.
+- A/B testing framework for ranking experiments.
+- **Exit criteria**: Hiring-intent AUC > 0.85, recommendation CTR > 25%.
+
+### Phase 4 — Comprehensive Platform (Months 10–12)
+
+**Focus**: Real-time data, advanced analytics, full ecosystem integration.
+
+- Near-real-time data pipeline (daily refresh for all labs).
+- Advanced ML models with continuous learning from user outcomes.
+- Integration with application tracker and email generator.
+- Community-contributed corrections and ratings.
+- **Exit criteria**: 10,000 MAU, 50,000+ labs indexed, < 5% false-positive rate.
+
+---
+
+## 9. Risks & Mitigations
+
+### Technical
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|-----------|
+| Low hiring-intent accuracy in early phases | High | High | Start with manual curation; use ML only after accumulating labeled data; allow user corrections. |
+| Data staleness | Medium | High | Prioritize high-value labs for frequent crawling; show "last verified" dates to users. |
+| Scaling bottlenecks | Medium | Medium | Use Elasticsearch for search (horizontally scalable); cache aggressively; load-test before each phase. |
+| Algorithm bias (e.g., over-representing well-known universities) | Medium | High | Diversity factor in recommendations; fairness audits each quarter; transparent ranking explanations. |
+
+### Business
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|-----------|
+| Low user adoption | Medium | High | Start with a niche (CS research at top-30 US universities); prove value before broadening. |
+| Data-sourcing legal challenges | Low | High | Consult legal counsel on web-scraping; prefer public APIs; respect robots.txt; offer opt-out for professors. |
+| Competitive response from incumbents | Low | Medium | Move fast on hiring-intent detection (unique differentiator); build network effects through community. |
+
+### Operational
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|-----------|
+| Small team bandwidth | High | Medium | Automate everything possible; prioritize ruthlessly; use managed cloud services. |
+| Infrastructure cost overruns | Medium | Medium | Set per-service cost budgets; use spot instances for data pipeline; monitor cloud spend weekly. |
+
+---
+
+*Document Version: 2.0*
+*Last Updated: March 19, 2026*
+*Next Review: April 19, 2026*
 *Owner: Search Engine Product Lead*
