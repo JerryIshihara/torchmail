@@ -90,6 +90,12 @@ cp .env.example .env
 npm run dev
 ```
 
+### Search API (FastAPI)
+```bash
+python -m pip install -r src/backend/requirements.txt
+uvicorn src.backend.main:app --reload
+```
+
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
