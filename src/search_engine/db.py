@@ -4,9 +4,10 @@ Schema is a simplified subset of the full design (docs/schema/schema.dbml),
 scoped to what the MVP needs: universities, professors, opportunities, and search cache.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     Float,
@@ -17,6 +18,7 @@ from sqlalchemy import (
     UniqueConstraint,
     create_engine,
 )
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import DeclarativeBase, Session, relationship, sessionmaker
 
 from . import config
@@ -47,10 +49,34 @@ class Professor(Base):
     name = Column(String(512), nullable=False)
     orcid = Column(String(64), nullable=True)
     university_id = Column(Integer, ForeignKey("universities.id"), nullable=True)
+    homepage_url = Column(Text, nullable=True)
+    lab_url = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     university = relationship("University", back_populates="professors")
     opportunities = relationship("ResearchOpportunity", back_populates="professor")
+    hiring_signals = relationship("LabHiringSignal", back_populates="professor", cascade="all, delete-orphan")
+
+
+def _default_hiring_signal_expiry() -> datetime:
+    return datetime.now(timezone.utc) + timedelta(days=config.HIRING_SIGNAL_TTL_DAYS)
+
+
+class LabHiringSignal(Base):
+    __tablename__ = "lab_hiring_signals"
+    __table_args__ = (UniqueConstraint("professor_id", "hiring_url"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    professor_id = Column(Integer, ForeignKey("professors.id"), nullable=False, index=True)
+    lab_url = Column(Text, nullable=True)
+    hiring_url = Column(Text, nullable=False)
+    hiring_paragraph = Column(Text, nullable=False)
+    keywords_matched = Column(ARRAY(Text), nullable=True)
+    scraped_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    expires_at = Column(DateTime(timezone=True), default=_default_hiring_signal_expiry, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    professor = relationship("Professor", back_populates="hiring_signals")
 
 
 class ResearchOpportunity(Base):

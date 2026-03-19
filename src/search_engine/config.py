@@ -25,6 +25,7 @@ OPENALEX_BASE_URL = "https://api.openalex.org"
 OPENALEX_EMAIL = os.getenv("OPENALEX_EMAIL", "")
 
 CACHE_TTL_HOURS = int(os.getenv("CACHE_TTL_HOURS", "24"))
+HIRING_SIGNAL_TTL_DAYS = int(os.getenv("HIRING_SIGNAL_TTL_DAYS", "7"))
 
 SEARCH_RESULT_LIMIT = 50
 
