@@ -99,12 +99,7 @@ def test_scrape_hiring_info_follows_targeted_link(monkeypatch):
                 return DummyResponse(status_code=404)
             if url == "https://lab.example.edu":
                 return DummyResponse(
-                    text=(
-                        "<html><body>"
-                        "<p>Welcome to the lab.</p>"
-                        "<a href='/join'>Join us</a>"
-                        "</body></html>"
-                    )
+                    text=("<html><body><p>Welcome to the lab.</p><a href='/join'>Join us</a></body></html>")
                 )
             if url == "https://lab.example.edu/join":
                 return DummyResponse(

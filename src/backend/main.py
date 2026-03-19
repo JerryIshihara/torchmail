@@ -13,8 +13,7 @@ from sqlalchemy.orm import joinedload
 
 try:
     from src.backend.scraper import HiringInfo, find_lab_url, scrape_hiring_info
-    from src.search_engine import cache
-    from src.search_engine import config
+    from src.search_engine import cache, config
     from src.search_engine.db import (
         LabHiringSignal,
         Professor,
@@ -26,9 +25,15 @@ try:
     from src.search_engine.search import fetch_opportunities, is_priority_country, normalize_country_codes
 except ModuleNotFoundError:
     from backend.scraper import HiringInfo, find_lab_url, scrape_hiring_info
-    from search_engine import cache
-    from search_engine import config
-    from search_engine.db import LabHiringSignal, Professor, ResearchOpportunity, SearchCacheResult, get_session, init_db
+    from search_engine import cache, config
+    from search_engine.db import (
+        LabHiringSignal,
+        Professor,
+        ResearchOpportunity,
+        SearchCacheResult,
+        get_session,
+        init_db,
+    )
     from search_engine.search import fetch_opportunities, is_priority_country, normalize_country_codes
 
 app = FastAPI(title="TorchMail Search API", version="0.1.0")

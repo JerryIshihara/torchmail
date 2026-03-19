@@ -239,7 +239,7 @@ def _fetch_html_with_policy(
     parsed = urlparse(url)
     origin = f"{parsed.scheme}://{parsed.netloc}"
 
-    parser = robots_cache.get(origin, None)
+    parser = robots_cache.get(origin)
     if origin not in robots_cache:
         parser = _robots_parser_for_origin(client, origin)
         robots_cache[origin] = parser
