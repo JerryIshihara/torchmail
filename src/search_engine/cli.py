@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from urllib.parse import urlparse
+
 import click
 from rich.console import Console
 from rich.panel import Panel
@@ -12,6 +14,22 @@ from .db import get_session, init_db
 from .search import fetch_opportunities
 
 console = Console()
+
+
+def _db_label() -> str:
+    """Human-friendly label for the current DATABASE_URL (hides credentials)."""
+    try:
+        p = urlparse(config.DATABASE_URL)
+        host = p.hostname or "unknown"
+        if any(s in host for s in ("supabase", )):
+            return f"Supabase ({host})"
+        if any(s in host for s in ("neon", )):
+            return f"Neon ({host})"
+        if host in ("localhost", "127.0.0.1"):
+            return f"local ({host}:{p.port or 5432})"
+        return host
+    except Exception:
+        return "configured database"
 
 
 @click.group(invoke_without_command=True)
@@ -43,6 +61,7 @@ def interactive():
     """Interactive search loop (default mode)."""
     display.show_banner()
     init_db()
+    console.print(f"  DB: [dim]{_db_label()}[/dim]")
     console.print("  Type a research area to search, or [bold]quit[/bold] to exit.\n")
 
     while True:
@@ -65,9 +84,10 @@ def stats():
     from .db import Professor, ResearchOpportunity, SearchCache, University
 
     console.print(Panel(
-        f"Universities: {session.query(University).count()}\n"
-        f"Professors:   {session.query(Professor).count()}\n"
-        f"Opportunities:{session.query(ResearchOpportunity).count()}\n"
+        f"Provider:      {_db_label()}\n"
+        f"Universities:  {session.query(University).count()}\n"
+        f"Professors:    {session.query(Professor).count()}\n"
+        f"Opportunities: {session.query(ResearchOpportunity).count()}\n"
         f"Cache entries: {session.query(SearchCache).count()}",
         title="Database Stats",
         border_style="cyan",
@@ -127,5 +147,3 @@ def _offer_detail(opportunities):
                 console.print(f"  [yellow]Pick a number between 1 and {len(opportunities)}[/yellow]")
         except ValueError:
             break
-
-

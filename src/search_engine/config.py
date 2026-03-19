@@ -1,4 +1,18 @@
+"""Configuration — reads from environment variables or a .env file."""
+
 import os
+from pathlib import Path
+
+_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+if _ENV_FILE.is_file():
+    for line in _ENV_FILE.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        key, _, value = line.partition("=")
+        key, value = key.strip(), value.strip()
+        if key and value and key not in os.environ:
+            os.environ[key] = value
 
 
 DATABASE_URL = os.getenv(

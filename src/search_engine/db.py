@@ -1,6 +1,6 @@
 """Database models and session management.
 
-Schema is a simplified subset of the full design (search-engine-technical-design.md),
+Schema is a simplified subset of the full design (docs/schema/schema.dbml),
 scoped to what the MVP needs: universities, professors, opportunities, and search cache.
 """
 
@@ -16,7 +16,6 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     create_engine,
-    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Session, relationship, sessionmaker
 
@@ -102,10 +101,20 @@ _engine = None
 _SessionLocal = None
 
 
+def _engine_kwargs() -> dict:
+    """Build connect_args for local vs hosted PostgreSQL."""
+    kwargs: dict = {"echo": False, "pool_pre_ping": True}
+    url = config.DATABASE_URL
+    is_remote = not any(h in url for h in ("localhost", "127.0.0.1", "host.docker.internal"))
+    if is_remote:
+        kwargs["connect_args"] = {"sslmode": "require"}
+    return kwargs
+
+
 def get_engine():
     global _engine
     if _engine is None:
-        _engine = create_engine(config.DATABASE_URL, echo=False, pool_pre_ping=True)
+        _engine = create_engine(config.DATABASE_URL, **_engine_kwargs())
     return _engine
 
 
