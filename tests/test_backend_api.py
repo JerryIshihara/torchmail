@@ -35,8 +35,10 @@ def _make_opportunity() -> SimpleNamespace:
     )
 
 
-def _build_client(monkeypatch) -> TestClient:
+def _build_client(monkeypatch, *, stub_schedule: bool = True) -> TestClient:
     monkeypatch.setattr(backend_main, "init_db", lambda: None)
+    if stub_schedule:
+        monkeypatch.setattr(backend_main, "_schedule_hiring_backfill", lambda opportunities: None)
     return TestClient(backend_main.app)
 
 
@@ -69,6 +71,27 @@ def test_search_endpoint_uses_pipeline_and_returns_structured_json(monkeypatch):
     assert payload["results"][0]["rank"] == 1
     assert payload["results"][0]["professor"]["name"] == "Dr. Jane Smith"
     assert payload["results"][0]["is_priority_country"] is True
+    assert payload["results"][0]["hiring_paragraph"] == "No active hiring page found"
+    assert payload["results"][0]["hiring_url"] is None
+
+
+def test_search_endpoint_schedules_background_hiring_backfill(monkeypatch):
+    opportunity = _make_opportunity()
+    monkeypatch.setattr(backend_main, "get_session", lambda: DummySession())
+    monkeypatch.setattr(backend_main, "_run_search_pipeline", lambda session, query, countries: ([opportunity], False))
+    captured: dict[str, object] = {}
+
+    def fake_schedule(opportunities):
+        captured["count"] = len(opportunities)
+        captured["first_id"] = opportunities[0].id
+
+    monkeypatch.setattr(backend_main, "_schedule_hiring_backfill", fake_schedule)
+
+    with _build_client(monkeypatch, stub_schedule=False) as client:
+        response = client.get("/api/search", params={"q": "genome analysis"})
+
+    assert response.status_code == 200
+    assert captured == {"count": 1, "first_id": 42}
 
 
 def test_search_endpoint_parses_country_filters(monkeypatch):
