@@ -1,0 +1,220 @@
+graph TB
+    %% ========== TORCHMAIL PRODUCT SCOPE ==========
+    
+    %% Main Product Box
+    subgraph "TorchMail - Research Assistant SaaS Platform"
+        
+        %% ========== CORE USER JOURNEYS ==========
+        subgraph User_Journeys["User Journeys"]
+            Student["🎓 Student User"]
+            Professor["👨‍🏫 Professor User"]
+            Admin["⚙️ Platform Admin"]
+            
+            Student -->|Finds Research Opportunities| Matching
+            Student -->|Sends Cold Emails| EmailGen
+            Student -->|Tracks Applications| AppTrack
+            Student -->|Learns & Networks| Community
+            
+            Professor -->|Posts Opportunities| OppPosting
+            Professor -->|Finds Students| Matching
+            Professor -->|Manages Applications| AppTrack
+        end
+        
+        %% ========== CORE PLATFORM EPICS ==========
+        subgraph Epic1["Epic 1: AI-Powered Email Generation"]
+            EmailGen["📧 Email Generator"]
+            TemplateMgr["📋 Template Management"]
+            Personalization["🎯 Personalization Engine"]
+            ABTesting["🧪 A/B Testing"]
+            Optimization["📊 Optimization ML"]
+            
+            EmailGen --> TemplateMgr
+            EmailGen --> Personalization
+            EmailGen --> ABTesting
+            ABTesting --> Optimization
+        end
+        
+        subgraph Epic2["Epic 2: Professor & Research Database"]
+            ProfDB["👨‍🏫 Professor Database"]
+            UniDB["🏛️ University Directory"]
+            PaperDB["📄 Research Papers"]
+            Scraping["🕷️ Automated Scraping"]
+            DataQuality["✅ Data Quality Pipeline"]
+            
+            ProfDB --> UniDB
+            ProfDB --> PaperDB
+            Scraping --> ProfDB
+            Scraping --> PaperDB
+            DataQuality --> ProfDB
+            DataQuality --> PaperDB
+        end
+        
+        subgraph Epic3["Epic 3: Smart Matching Engine"]
+            StudentProf["📝 Student Profiles"]
+            Matching["🤝 Matching Algorithm"]
+            Recommendations["⭐ Recommendations"]
+            SuccessPred["🔮 Success Prediction"]
+            Marketplace["⚖️ Marketplace Balance"]
+            
+            StudentProf --> Matching
+            ProfDB --> Matching
+            Matching --> Recommendations
+            Matching --> SuccessPred
+            Marketplace --> Matching
+        end
+        
+        subgraph Epic4["Epic 4: Application Management"]
+            AppTrack["📋 Application Tracker"]
+            DocStorage["📁 Document Storage"]
+            WorkflowAuto["⚙️ Workflow Automation"]
+            Collaboration["👥 Collaboration Tools"]
+            Analytics["📈 Progress Analytics"]
+            
+            AppTrack --> DocStorage
+            AppTrack --> WorkflowAuto
+            AppTrack --> Collaboration
+            AppTrack --> Analytics
+        end
+        
+        subgraph Epic5["Epic 5: Community & Learning"]
+            Forums["💬 Discussion Forums"]
+            Learning["📚 Learning Resources"]
+            Mentorship["🤝 Mentorship"]
+            Networking["🌐 Networking"]
+            Events["🎤 Virtual Events"]
+            
+            Forums --> Learning
+            Forums --> Mentorship
+            Forums --> Networking
+            Networking --> Events
+        end
+        
+        subgraph Epic6["Epic 6: Platform Infrastructure"]
+            Microservices["⚙️ Microservices Arch"]
+            APIGateway["🚪 API Gateway"]
+            Database["🗄️ Database Cluster"]
+            Caching["⚡ Caching Layer"]
+            Monitoring["📊 Monitoring & Observability"]
+            Security["🔒 Security & Compliance"]
+            
+            Microservices --> APIGateway
+            Microservices --> Database
+            Microservices --> Caching
+            Monitoring --> Microservices
+            Security --> Microservices
+        end
+        
+        subgraph Epic7["Epic 7: Monetization & Business"]
+            Pricing["💰 Pricing Models"]
+            Billing["💳 Billing System"]
+            AnalyticsBI["📊 Business Analytics"]
+            Partnerships["🤝 University Partnerships"]
+            MarketplaceEcon["📈 Marketplace Economics"]
+            
+            Pricing --> Billing
+            Billing --> AnalyticsBI
+            Partnerships --> Pricing
+            MarketplaceEcon --> Pricing
+        end
+        
+        %% ========== DATA FLOWS ==========
+        subgraph Data_Flows["Data Flows & Integrations"]
+            ExternalAPIs["🌐 External APIs"]
+            AI_Services["🧠 AI Services"]
+            EmailServices["📨 Email Services"]
+            PaymentGateways["💸 Payment Gateways"]
+            
+            ExternalAPIs --> Scraping
+            ExternalAPIs --> PaperDB
+            AI_Services --> EmailGen
+            AI_Services --> Personalization
+            AI_Services --> Matching
+            EmailServices --> EmailGen
+            EmailServices --> WorkflowAuto
+            PaymentGateways --> Billing
+        end
+        
+        %% ========== CROSS-EPIC CONNECTIONS ==========
+        EmailGen -.->|Uses Professor Data| ProfDB
+        Matching -.->|Matches Students with| ProfDB
+        AppTrack -.->|Tracks Emails from| EmailGen
+        Community -.->|Shares Success from| AppTrack
+        Optimization -.->|Optimizes based on| Analytics
+        Marketplace -.->|Balances| ProfDB
+        Marketplace -.->|Balances| StudentProf
+        
+        %% ========== INFRASTRUCTURE SUPPORT ==========
+        Microservices -.->|Hosts| EmailGen
+        Microservices -.->|Hosts| ProfDB
+        Microservices -.->|Hosts| Matching
+        Microservices -.->|Hosts| AppTrack
+        Microservices -.->|Hosts| Community
+        Database -.->|Stores Data for| AllEpics
+        Caching -.->|Speeds up| AllEpics
+        Security -.->|Protects| AllEpics
+        Monitoring -.->|Monitors| AllEpics
+        
+        %% ========== BUSINESS FLOWS ==========
+        Student -.->|Pays for| Pricing
+        Professor -.->|Pays for| Pricing
+        University -.->|Partners via| Partnerships
+        AnalyticsBI -.->|Informs| Pricing
+        MarketplaceEcon -.->|Optimizes| Marketplace
+    end
+    
+    %% ========== EXTERNAL SYSTEMS ==========
+    subgraph External["External Systems & Users"]
+        University["🏛️ Universities"]
+        ResearchDBs["📚 Research Databases"]
+        EmailProviders["📧 Email Providers"]
+        PaymentProcessors["💳 Payment Processors"]
+        Regulatory["⚖️ Regulatory Bodies"]
+        
+        University -->|Provides Data| Scraping
+        ResearchDBs -->|Provides Papers| PaperDB
+        EmailProviders -->|Sends Emails| EmailServices
+        PaymentProcessors -->|Processes Payments| PaymentGateways
+        Regulatory -->|Sets Compliance| Security
+    end
+    
+    %% ========== SUCCESS METRICS ==========
+    subgraph Metrics["Success Metrics Dashboard"]
+        UserGrowth["📈 User Growth"]
+        Engagement["🎯 Engagement Rates"]
+        SuccessRates["✅ Success Rates"]
+        Revenue["💰 Revenue Metrics"]
+        PlatformHealth["🏥 Platform Health"]
+        
+        UserGrowth -.->|Measures| AllEpics
+        Engagement -.->|Measures| EmailGen
+        Engagement -.->|Measures| Community
+        SuccessRates -.->|Measures| Matching
+        SuccessRates -.->|Measures| AppTrack
+        Revenue -.->|Measures| Pricing
+        PlatformHealth -.->|Measures| Microservices
+    end
+    
+    %% ========== STYLING ==========
+    classDef epic fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef core fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef infra fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef business fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef external fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef metrics fill:#f1f8e9,stroke:#33691e,stroke-width:2px
+    
+    class Epic1,Epic2,Epic3,Epic4,Epic5 epic
+    class User_Journeys,Data_Flows core
+    class Epic6 infra
+    class Epic7 business
+    class External external
+    class Metrics metrics
+    
+    %% ========== LEGEND ==========
+    subgraph Legend["Legend"]
+        L1[🎓 Student User]:::core
+        L2[📧 Email Generator]:::epic
+        L3[⚙️ Microservices Arch]:::infra
+        L4[💰 Pricing Models]:::business
+        L5[🌐 External APIs]:::external
+        L6[📈 User Growth]:::metrics
+    end

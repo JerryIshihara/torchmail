@@ -1,0 +1,98 @@
+graph TB
+    %% ========== TORCHMAIL SIMPLIFIED PRODUCT SCOPE ==========
+    
+    %% Main Platform
+    TorchMail["<b>🔥 TorchMail Platform</b><br/>Research Assistant SaaS"]
+    
+    %% ========== CORE USER TYPES ==========
+    Student["🎓 Students"]
+    Professor["👨‍🏫 Professors"]
+    Admin["⚙️ Admins"]
+    
+    Student --> TorchMail
+    Professor --> TorchMail
+    Admin --> TorchMail
+    
+    %% ========== 7 MAJOR EPICS ==========
+    subgraph Epics["7 Core Product Epics"]
+        Epic1["<b>1. AI Email Generator</b><br/>• Template system<br/>• Personalization<br/>• A/B testing"]
+        
+        Epic2["<b>2. Research Database</b><br/>• Professor profiles<br/>• University data<br/>• Paper aggregation"]
+        
+        Epic3["<b>3. Smart Matching</b><br/>• Student profiles<br/>• Compatibility scoring<br/>• Recommendations"]
+        
+        Epic4["<b>4. Application Tracker</b><br/>• Status pipeline<br/>• Document storage<br/>• Workflow automation"]
+        
+        Epic5["<b>5. Community Platform</b><br/>• Forums & Q&A<br/>• Learning resources<br/>• Mentorship"]
+        
+        Epic6["<b>6. Infrastructure</b><br/>• Microservices<br/>• Scalable database<br/>• Security & monitoring"]
+        
+        Epic7["<b>7. Monetization</b><br/>• Pricing tiers<br/>• Billing system<br/>• Business analytics"]
+    end
+    
+    TorchMail --> Epics
+    
+    %% ========== KEY DATA FLOWS ==========
+    Epic1 -->|Generates| Emails["📧 Personalized Emails"]
+    Epic2 -->|Provides| Data["📊 Research Data"]
+    Epic3 -->|Creates| Matches["🤝 Smart Matches"]
+    Epic4 -->|Tracks| Applications["📋 Applications"]
+    Epic5 -->|Builds| Community["👥 User Community"]
+    
+    %% ========== USER BENEFITS ==========
+    Student -->|Finds| ResearchOpps["🔍 Research Opportunities"]
+    Student -->|Sends| BetterEmails["💌 Better Cold Emails"]
+    Student -->|Tracks| AppProgress["📈 Application Progress"]
+    Student -->|Learns| FromCommunity["🎓 From Community"]
+    
+    Professor -->|Finds| QualifiedStudents["🎯 Qualified Students"]
+    Professor -->|Manages| ApplicationsEasily["⚡ Applications Easily"]
+    Professor -->|Expands| ResearchNetwork["🌐 Research Network"]
+    
+    %% ========== BUSINESS OUTCOMES ==========
+    TorchMail -->|Generates| Revenue["💰 Recurring Revenue"]
+    TorchMail -->|Builds| NetworkEffects["🔄 Network Effects"]
+    TorchMail -->|Creates| MarketLeadership["🏆 Market Leadership"]
+    
+    %% ========== EXTERNAL INTEGRATIONS ==========
+    subgraph External["External Systems"]
+        Universities["🏛️ Universities"]
+        ResearchDBs["📚 Research Databases"]
+        EmailServices["📨 Email Providers"]
+        PaymentSystems["💳 Payment Processors"]
+        AIProviders["🧠 AI Services"]
+    end
+    
+    Epic2 -->|Pulls from| Universities
+    Epic2 -->|Pulls from| ResearchDBs
+    Epic1 -->|Uses| EmailServices
+    Epic7 -->|Uses| PaymentSystems
+    Epic1 -->|Uses| AIProviders
+    Epic3 -->|Uses| AIProviders
+    
+    %% ========== SUCCESS METRICS ==========
+    subgraph Metrics["Success Metrics"]
+        UserGrowth["📈 User Growth<br/>• 10K+ active users"]
+        Engagement["🎯 Engagement<br/>• 70%+ match accuracy"]
+        RevenueGrowth["💰 Revenue<br/>• $50K+ MRR"]
+        PlatformHealth["🏥 Platform Health<br/>• 99.9% uptime"]
+    end
+    
+    TorchMail -->|Achieves| Metrics
+    
+    %% ========== STYLING ==========
+    classDef platform fill:#ffebee,stroke:#c62828,stroke-width:3px
+    classDef user fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef epic fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef benefit fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef business fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef external fill:#fce4ec,stroke:#ad1457,stroke-width:2px
+    classDef metrics fill:#f1f8e9,stroke:#689f38,stroke-width:2px
+    
+    class TorchMail platform
+    class Student,Professor,Admin user
+    class Epics epic
+    class ResearchOpps,BetterEmails,AppProgress,FromCommunity,QualifiedStudents,ApplicationsEasily,ResearchNetwork benefit
+    class Revenue,NetworkEffects,MarketLeadership business
+    class External external
+    class Metrics metrics

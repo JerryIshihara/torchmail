@@ -1,0 +1,113 @@
+graph TB
+    %% ========== TORCHMAIL CORE ARCHITECTURE ==========
+    
+    %% Users
+    Student["🎓 Student"]
+    Professor["👨‍🏫 Professor"]
+    
+    %% Frontend
+    Frontend["<b>Web App</b><br/>Next.js + React"]
+    
+    Student --> Frontend
+    Professor --> Frontend
+    
+    %% API Gateway
+    APIGateway["<b>API Gateway</b><br/>Authentication · Routing · Rate Limiting"]
+    
+    Frontend --> APIGateway
+    
+    %% Microservices
+    subgraph Microservices["<b>Core Microservices</b>"]
+        EmailService["<b>Email Service</b><br/>• Template management<br/>• AI generation<br/>• Personalization"]
+        
+        DatabaseService["<b>Database Service</b><br/>• Professor profiles<br/>• University data<br/>• Research papers"]
+        
+        MatchingService["<b>Matching Service</b><br/>• Student profiles<br/>• Compatibility scoring<br/>• Recommendations"]
+        
+        TrackingService["<b>Tracking Service</b><br/>• Application pipeline<br/>• Document storage<br/>• Progress analytics"]
+        
+        CommunityService["<b>Community Service</b><br/>• Forums & discussions<br/>• Learning resources<br/>• User networking"]
+    end
+    
+    APIGateway --> Microservices
+    
+    %% Data Stores
+    subgraph DataStores["<b>Data Stores</b>"]
+        PrimaryDB["<b>Primary Database</b><br/>PostgreSQL<br/>• User data<br/>• Profiles<br/>• Applications"]
+        
+        SearchDB["<b>Search Database</b><br/>Elasticsearch<br/>• Full-text search<br/>• Research papers<br/>• Professor search"]
+        
+        Cache["<b>Cache</b><br/>Redis<br/>• Session storage<br/>• Frequent queries<br/>• Rate limiting"]
+        
+        FileStorage["<b>File Storage</b><br/>S3/Cloud Storage<br/>• Documents<br/>• User uploads<br/>• Media files"]
+    end
+    
+    EmailService --> PrimaryDB
+    DatabaseService --> PrimaryDB
+    DatabaseService --> SearchDB
+    MatchingService --> PrimaryDB
+    TrackingService --> PrimaryDB
+    TrackingService --> FileStorage
+    CommunityService --> PrimaryDB
+    
+    AllServices[All Services] --> Cache
+    
+    %% External Services
+    subgraph ExternalServices["<b>External Services</b>"]
+        AIProvider["<b>AI Provider</b><br/>OpenAI/Anthropic<br/>• Email generation<br/>• Personalization<br/>• Matching logic"]
+        
+        EmailProvider["<b>Email Provider</b><br/>Resend/SendGrid<br/>• Email sending<br/>• Delivery tracking<br/>• Analytics"]
+        
+        PaymentProvider["<b>Payment Provider</b><br/>Stripe<br/>• Subscriptions<br/>• Invoicing<br/>• Revenue tracking"]
+        
+        ResearchAPIs["<b>Research APIs</b><br/>arXiv · Google Scholar<br/>• Paper data<br/>• Author profiles<br/>• Citation data"]
+    end
+    
+    EmailService --> AIProvider
+    EmailService --> EmailProvider
+    DatabaseService --> ResearchAPIs
+    
+    %% Infrastructure
+    subgraph Infrastructure["<b>Infrastructure</b>"]
+        ContainerOrchestration["<b>Container Orchestration</b><br/>Kubernetes<br/>• Service deployment<br/>• Auto-scaling<br/>• Load balancing"]
+        
+        Monitoring["<b>Monitoring</b><br/>Prometheus + Grafana<br/>• Performance metrics<br/>• Error tracking<br/>• Usage analytics"]
+        
+        CI_CD["<b>CI/CD Pipeline</b><br/>GitHub Actions<br/>• Automated testing<br/>• Deployment<br/>• Rollback capability"]
+        
+        Security["<b>Security Layer</b><br/>• SSL/TLS encryption<br/>• DDoS protection<br/>• Vulnerability scanning"]
+    end
+    
+    Microservices --> ContainerOrchestration
+    AllInfra[All Components] --> Monitoring
+    AllInfra --> CI_CD
+    AllInfra --> Security
+    
+    %% ========== DATA FLOW ==========
+    Student -->|1. Creates profile| MatchingService
+    Student -->|2. Searches opportunities| DatabaseService
+    Student -->|3. Generates emails| EmailService
+    Student -->|4. Tracks applications| TrackingService
+    Student -->|5. Engages community| CommunityService
+    
+    Professor -->|1. Creates profile| DatabaseService
+    Professor -->|2. Reviews matches| MatchingService
+    Professor -->|3. Manages applications| TrackingService
+    Professor -->|4. Participates community| CommunityService
+    
+    %% ========== STYLING ==========
+    classDef user fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef frontend fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef api fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef service fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef database fill:#fce4ec,stroke:#ad1457,stroke-width:2px
+    classDef external fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef infra fill:#f1f8e9,stroke:#689f38,stroke-width:2px
+    
+    class Student,Professor user
+    class Frontend frontend
+    class APIGateway api
+    class Microservices service
+    class DataStores database
+    class ExternalServices external
+    class Infrastructure infra
