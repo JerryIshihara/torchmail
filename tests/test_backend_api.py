@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
@@ -69,6 +70,39 @@ def test_search_endpoint_uses_pipeline_and_returns_structured_json(monkeypatch):
     assert payload["results"][0]["rank"] == 1
     assert payload["results"][0]["professor"]["name"] == "Dr. Jane Smith"
     assert payload["results"][0]["is_priority_country"] is True
+    assert payload["results"][0]["hiring_paragraph"] == "No active hiring page found"
+    assert payload["results"][0]["hiring_url"] is None
+
+
+def test_search_endpoint_uses_latest_active_hiring_signal(monkeypatch):
+    opportunity = _make_opportunity()
+    now = datetime.now(timezone.utc)
+    opportunity.professor.hiring_signals = [
+        SimpleNamespace(
+            is_active=True,
+            expires_at=now + timedelta(days=2),
+            scraped_at=now - timedelta(hours=3),
+            hiring_paragraph="Old hiring copy",
+            hiring_url="https://lab.example.edu/openings-old",
+        ),
+        SimpleNamespace(
+            is_active=True,
+            expires_at=now + timedelta(days=2),
+            scraped_at=now - timedelta(minutes=30),
+            hiring_paragraph="We are looking for PhD students in ML systems.",
+            hiring_url="https://lab.example.edu/openings",
+        ),
+    ]
+    monkeypatch.setattr(backend_main, "get_session", lambda: DummySession())
+    monkeypatch.setattr(backend_main, "_run_search_pipeline", lambda session, query, countries: ([opportunity], True))
+
+    with _build_client(monkeypatch) as client:
+        response = client.get("/api/search", params={"q": "genome analysis"})
+
+    assert response.status_code == 200
+    result = response.json()["results"][0]
+    assert result["hiring_paragraph"] == "We are looking for PhD students in ML systems."
+    assert result["hiring_url"] == "https://lab.example.edu/openings"
 
 
 def test_search_endpoint_parses_country_filters(monkeypatch):

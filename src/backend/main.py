@@ -3,23 +3,36 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
 try:
+    from src.backend.scraper import HiringInfo, find_lab_url, scrape_hiring_info
     from src.search_engine import cache
-    from src.search_engine.db import Professor, ResearchOpportunity, SearchCacheResult, get_session, init_db
+    from src.search_engine import config
+    from src.search_engine.db import (
+        LabHiringSignal,
+        Professor,
+        ResearchOpportunity,
+        SearchCacheResult,
+        get_session,
+        init_db,
+    )
     from src.search_engine.search import fetch_opportunities, is_priority_country, normalize_country_codes
 except ModuleNotFoundError:
+    from backend.scraper import HiringInfo, find_lab_url, scrape_hiring_info
     from search_engine import cache
-    from search_engine.db import Professor, ResearchOpportunity, SearchCacheResult, get_session, init_db
+    from search_engine import config
+    from search_engine.db import LabHiringSignal, Professor, ResearchOpportunity, SearchCacheResult, get_session, init_db
     from search_engine.search import fetch_opportunities, is_priority_country, normalize_country_codes
 
 app = FastAPI(title="TorchMail Search API", version="0.1.0")
+NO_ACTIVE_HIRING_TEXT = "No active hiring page found"
 
 
 def _cors_origins() -> list[str]:
@@ -65,6 +78,108 @@ def _latest_active_hiring_signal(professor: Professor | None) -> tuple[str | Non
     return getattr(latest, "hiring_paragraph", None), getattr(latest, "hiring_url", None)
 
 
+def _has_active_hiring_signal(professor: Professor | Any | None) -> bool:
+    paragraph, _ = _latest_active_hiring_signal(professor)
+    return bool(paragraph)
+
+
+def _upsert_hiring_signal(
+    session,
+    professor: Professor,
+    source_lab_url: str,
+    hiring_info: HiringInfo,
+) -> None:
+    expires_at = hiring_info.scraped_at + timedelta(days=config.HIRING_SIGNAL_TTL_DAYS)
+    existing = (
+        session.query(LabHiringSignal)
+        .filter(
+            LabHiringSignal.professor_id == professor.id,
+            LabHiringSignal.hiring_url == hiring_info.url,
+        )
+        .first()
+    )
+    if existing:
+        existing.lab_url = source_lab_url
+        existing.hiring_paragraph = hiring_info.paragraph
+        existing.keywords_matched = hiring_info.keywords_matched
+        existing.scraped_at = hiring_info.scraped_at
+        existing.expires_at = expires_at
+        existing.is_active = True
+        return
+
+    signal = LabHiringSignal(
+        professor_id=professor.id,
+        lab_url=source_lab_url,
+        hiring_url=hiring_info.url,
+        hiring_paragraph=hiring_info.paragraph,
+        keywords_matched=hiring_info.keywords_matched,
+        scraped_at=hiring_info.scraped_at,
+        expires_at=expires_at,
+        is_active=True,
+    )
+    session.add(signal)
+
+
+def _backfill_hiring_signals(professor_ids: list[int]) -> None:
+    session = get_session()
+    try:
+        for professor_id in professor_ids:
+            try:
+                professor = (
+                    session.query(Professor)
+                    .options(joinedload(Professor.university), joinedload(Professor.hiring_signals))
+                    .filter(Professor.id == professor_id)
+                    .first()
+                )
+                if professor is None or _has_active_hiring_signal(professor):
+                    continue
+
+                university = professor.university
+                lab_url = find_lab_url(
+                    professor_name=professor.name,
+                    university_name=university.name if university else None,
+                    country_code=university.country_code if university else None,
+                    homepage_url=professor.homepage_url,
+                    lab_url=professor.lab_url,
+                    openalex_id=professor.openalex_id,
+                )
+                if not lab_url:
+                    continue
+
+                if not professor.homepage_url:
+                    professor.homepage_url = lab_url
+                professor.lab_url = lab_url
+
+                hiring_info = scrape_hiring_info(lab_url)
+                if hiring_info is None:
+                    continue
+
+                _upsert_hiring_signal(session, professor, lab_url, hiring_info)
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+            except Exception:
+                session.rollback()
+    finally:
+        session.close()
+
+
+def _enqueue_hiring_backfill(background_tasks: BackgroundTasks, opportunities: list[ResearchOpportunity]) -> None:
+    professor_ids: set[int] = set()
+
+    for opportunity in opportunities:
+        professor = getattr(opportunity, "professor", None)
+        if not professor or _has_active_hiring_signal(professor):
+            continue
+
+        professor_id = getattr(professor, "id", None)
+        if isinstance(professor_id, int):
+            professor_ids.add(professor_id)
+
+    if professor_ids:
+        background_tasks.add_task(_backfill_hiring_signals, sorted(professor_ids))
+
+
 def _serialize_opportunity(opportunity: ResearchOpportunity, rank: int | None = None) -> dict[str, Any]:
     professor = opportunity.professor
     university = professor.university if professor else None
@@ -89,7 +204,7 @@ def _serialize_opportunity(opportunity: ResearchOpportunity, rank: int | None = 
         "latest_paper_date": opportunity.latest_paper_date,
         "latest_paper_title": opportunity.latest_paper_title,
         "composite_score": opportunity.composite_score,
-        "hiring_paragraph": hiring_paragraph,
+        "hiring_paragraph": hiring_paragraph or NO_ACTIVE_HIRING_TEXT,
         "hiring_url": hiring_url,
         "is_priority_country": is_priority_country(country_code),
     }
@@ -165,6 +280,7 @@ def health() -> dict[str, Any]:
 
 @app.get("/api/search")
 def search(
+    background_tasks: BackgroundTasks,
     q: str = Query(..., min_length=1),
     countries: str | None = Query(None, description="Comma-separated ISO country codes (e.g. US,GB)"),
 ) -> dict[str, Any]:
@@ -176,6 +292,7 @@ def search(
     session = get_session()
     try:
         opportunities, from_cache = _run_search_pipeline(session, query, countries=country_filter)
+        _enqueue_hiring_backfill(background_tasks, opportunities)
         return _build_search_response(query, opportunities, from_cache, countries=country_filter)
     finally:
         session.close()
