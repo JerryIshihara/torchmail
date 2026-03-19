@@ -156,10 +156,8 @@ def _backfill_hiring_signals(professor_ids: list[int]) -> None:
                 professor.lab_url = lab_url
 
                 hiring_info = scrape_hiring_info(lab_url)
-                if hiring_info is None:
-                    continue
-
-                _upsert_hiring_signal(session, professor, lab_url, hiring_info)
+                if hiring_info is not None:
+                    _upsert_hiring_signal(session, professor, lab_url, hiring_info)
                 session.commit()
             except IntegrityError:
                 session.rollback()
@@ -244,7 +242,10 @@ def _get_rank_for_opportunity(session, opportunity_id: int) -> int | None:
 def _fetch_opportunity_by_id(session, opportunity_id: int) -> ResearchOpportunity | None:
     return (
         session.query(ResearchOpportunity)
-        .options(joinedload(ResearchOpportunity.professor).joinedload(Professor.university))
+        .options(
+            joinedload(ResearchOpportunity.professor).joinedload(Professor.university),
+            joinedload(ResearchOpportunity.professor).joinedload(Professor.hiring_signals),
+        )
         .filter(ResearchOpportunity.id == opportunity_id)
         .first()
     )
