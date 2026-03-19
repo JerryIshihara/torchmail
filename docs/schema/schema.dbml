@@ -1,0 +1,246 @@
+// ─────────────────────────────────────────────────────────────────────
+//  TorchMail — Database Schema  (source of truth)
+//  View / edit visually:  https://dbdiagram.io
+//  Paste this file's contents into the editor.
+//  Docs: https://dbml.dbdiagram.io/docs
+// ─────────────────────────────────────────────────────────────────────
+
+Project torchmail {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # TorchMail Database Schema
+    SaaS platform to help students find research assistant positions.
+    This schema covers the search-engine MVP tables (marked [MVP])
+    and the full platform tables planned for later phases.
+  '''
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MVP TABLES — currently in use by src/search_engine/
+// ═══════════════════════════════════════════════════════════════════════
+
+Table universities [headercolor: #3498db] {
+  id            integer [pk, increment]
+  openalex_id   varchar(256) [unique, note: 'OpenAlex institution ID']
+  name          varchar(512) [not null]
+  country_code  varchar(8)
+  type          varchar(64) [note: 'education, company, facility, etc.']
+  created_at    timestamptz [default: `now()`]
+
+  Note: '[MVP] Institutions sourced from OpenAlex'
+}
+
+Table professors [headercolor: #3498db] {
+  id            integer [pk, increment]
+  openalex_id   varchar(256) [unique, note: 'OpenAlex author ID']
+  name          varchar(512) [not null]
+  orcid         varchar(64)
+  university_id integer [ref: > universities.id]
+  created_at    timestamptz [default: `now()`]
+
+  Note: '[MVP] Researchers discovered via paper search'
+}
+
+Table research_opportunities [headercolor: #3498db] {
+  id                integer [pk, increment]
+  professor_id      integer [not null, ref: > professors.id]
+  query_topic       text [not null, note: 'Normalised search query that produced this record']
+  relevance_score   float [not null, default: 0.0]
+  paper_count       integer [not null, default: 0]
+  total_citations   integer [not null, default: 0]
+  latest_paper_date varchar(32)
+  latest_paper_title text
+  composite_score   float [not null, default: 0.0, note: '0.4*relevance + 0.3*activity + 0.2*citations + 0.1*recency']
+  created_at        timestamptz [default: `now()`]
+
+  Note: '[MVP] One row per professor×query — scored research opportunity'
+}
+
+Table search_cache [headercolor: #3498db] {
+  id          integer [pk, increment]
+  query_hash  varchar(64) [unique, not null, note: 'SHA-256 of normalised query']
+  raw_query   text [not null]
+  created_at  timestamptz [default: `now()`]
+  expires_at  timestamptz [not null, note: 'Cache TTL — configurable via CACHE_TTL_HOURS']
+
+  Note: '[MVP] Query-level cache to avoid redundant API calls'
+}
+
+Table search_cache_results [headercolor: #3498db] {
+  id              integer [pk, increment]
+  cache_id        integer [not null, ref: > search_cache.id]
+  opportunity_id  integer [not null, ref: > research_opportunities.id]
+  rank            integer [not null]
+
+  indexes {
+    (cache_id, rank) [unique]
+  }
+
+  Note: '[MVP] Links a cached search to its ranked opportunities'
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════
+//  FULL PLATFORM TABLES — planned for Phase 2+
+//  Kept here so the schema design stays in one place.
+// ═══════════════════════════════════════════════════════════════════════
+
+Table departments [headercolor: #95a5a6] {
+  id            uuid [pk, default: `gen_random_uuid()`]
+  university_id uuid [not null, ref: > universities_full.id]
+  name          text [not null]
+  url           text
+  created_at    timestamptz [default: `now()`]
+
+  indexes {
+    (university_id, name) [unique]
+  }
+
+  Note: '[Phase 2] Academic departments within a university'
+}
+
+Table universities_full [headercolor: #95a5a6] {
+  id          uuid [pk, default: `gen_random_uuid()`]
+  name        text [not null, unique]
+  domain      text
+  country     text [not null]
+  state       text
+  city        text
+  lat         double
+  lon         double
+  tier        varchar [note: 'r1 | r2 | other']
+  created_at  timestamptz [default: `now()`]
+  updated_at  timestamptz [default: `now()`]
+
+  Note: '[Phase 2] Extended university model with geo & tier'
+}
+
+Table professors_full [headercolor: #95a5a6] {
+  id              uuid [pk, default: `gen_random_uuid()`]
+  name            text [not null]
+  email           text
+  department_id   uuid [not null, ref: > departments.id]
+  title           text
+  profile_url     text
+  scholar_url     text
+  orcid           text
+  bio             text
+  mentorship_style text
+  created_at      timestamptz [default: `now()`]
+  updated_at      timestamptz [default: `now()`]
+
+  Note: '[Phase 2] Full professor profile with enrichment fields'
+}
+
+Table labs [headercolor: #95a5a6] {
+  id              uuid [pk, default: `gen_random_uuid()`]
+  professor_id    uuid [not null, ref: > professors_full.id]
+  name            text [not null]
+  description     text
+  website_url     text
+  lab_size        integer
+  funding_sources text [note: 'Stored as JSON array']
+  facilities      text [note: 'Stored as JSON array']
+  created_at      timestamptz [default: `now()`]
+  updated_at      timestamptz [default: `now()`]
+
+  Note: '[Phase 2] Research lab — one professor may lead one or more labs'
+}
+
+Table research_areas [headercolor: #95a5a6] {
+  id        uuid [pk, default: `gen_random_uuid()`]
+  name      text [not null, unique]
+  parent_id uuid [ref: > research_areas.id, note: 'Self-referencing hierarchy']
+
+  Note: '[Phase 2] Taxonomy of research areas'
+}
+
+Table lab_research_areas [headercolor: #95a5a6] {
+  lab_id           uuid [not null, ref: > labs.id]
+  research_area_id uuid [not null, ref: > research_areas.id]
+
+  indexes {
+    (lab_id, research_area_id) [pk]
+  }
+
+  Note: '[Phase 2] Many-to-many link between labs and research areas'
+}
+
+Table hiring_signals [headercolor: #95a5a6] {
+  id          uuid [pk, default: `gen_random_uuid()`]
+  lab_id      uuid [not null, ref: > labs.id]
+  source      text [not null, note: 'website | grant | social | publication | manual']
+  signal_type text [not null]
+  raw_text    text
+  url         text
+  detected_at timestamptz [default: `now()`]
+  expires_at  timestamptz
+  confidence  real [not null, note: '0.0 – 1.0']
+  reviewed    boolean [not null, default: false]
+
+  Note: '[Phase 2] Raw hiring-intent signals from various sources'
+}
+
+Table hiring_status [headercolor: #95a5a6] {
+  lab_id         uuid [pk, ref: - labs.id]
+  status         text [not null, note: 'actively_hiring | might_hire | not_hiring | unknown']
+  score          real [not null, note: '0 – 100']
+  confidence     real [not null, note: '0.0 – 1.0']
+  last_signal_at timestamptz
+  computed_at    timestamptz [default: `now()`]
+
+  Note: '[Phase 2] Aggregated hiring status per lab'
+}
+
+Table publications [headercolor: #95a5a6] {
+  id         uuid [pk, default: `gen_random_uuid()`]
+  lab_id     uuid [not null, ref: > labs.id]
+  title      text [not null]
+  venue      text
+  year       integer
+  doi        text
+  url        text
+  abstract   text
+  created_at timestamptz [default: `now()`]
+
+  Note: '[Phase 2] Academic publications linked to labs'
+}
+
+Table students [headercolor: #e67e22] {
+  id              uuid [pk, default: `gen_random_uuid()`]
+  user_id         uuid [not null, unique]
+  academic_level  text [not null, note: 'undergraduate | masters | phd | postdoc']
+  university      text
+  major           text
+  gpa             real
+  graduation_date date
+  bio             text
+  created_at      timestamptz [default: `now()`]
+  updated_at      timestamptz [default: `now()`]
+
+  Note: '[Phase 3] Student profiles for personalised matching'
+}
+
+Table student_skills [headercolor: #e67e22] {
+  student_id uuid [not null, ref: > students.id]
+  skill_name text [not null]
+  level      text [not null, note: 'beginner | intermediate | advanced | expert']
+  years_exp  real
+
+  indexes {
+    (student_id, skill_name) [pk]
+  }
+
+  Note: '[Phase 3] Student skill inventory'
+}
+
+Table student_research_interests [headercolor: #e67e22] {
+  student_id       uuid [not null, ref: > students.id]
+  research_area_id uuid [not null, ref: > research_areas.id]
+
+  indexes {
+    (student_id, research_area_id) [pk]
+  }
+
+  Note: '[Phase 3] Links students to research areas they are interested in'
+}

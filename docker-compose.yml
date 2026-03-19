@@ -1,0 +1,31 @@
+# ─────────────────────────────────────────────────────────────────────
+#  Local PostgreSQL — optional fallback
+#  Prefer a hosted SaaS provider (Supabase or Neon) for convenience.
+#  See .env.example for setup instructions.
+#
+#  Usage:  docker compose up -d
+#  Then:   DATABASE_URL=postgresql://torchmail:torchmail_dev@localhost:5432/torchmail
+# ─────────────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: torchmail-postgres
+    environment:
+      POSTGRES_DB: torchmail
+      POSTGRES_USER: torchmail
+      POSTGRES_PASSWORD: torchmail_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U torchmail"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
