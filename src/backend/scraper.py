@@ -21,6 +21,7 @@ except ModuleNotFoundError:
 REQUEST_TIMEOUT_SECONDS = 10.0
 RATE_LIMIT_SECONDS = 0.6
 MAX_CANDIDATE_LINKS = 6
+MAX_PROFILE_URL_CANDIDATES = 12
 USER_AGENT = "TorchMailBot/0.1 (+https://github.com/JerryIshihara/torchmail)"
 
 HIRING_KEYWORDS = [
@@ -55,6 +56,11 @@ class HiringInfo:
 class AuthorUrlHints:
     homepage_url: str | None = None
     works_api_url: str | None = None
+
+
+@dataclass
+class InstitutionUrlHint:
+    homepage_url: str | None = None
 
 
 _KEYWORD_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -189,6 +195,125 @@ def fetch_openalex_author_urls(openalex_id: str | None) -> AuthorUrlHints:
     )
 
 
+def fetch_openalex_institution_homepage(university_name: str | None, country_code: str | None) -> InstitutionUrlHint:
+    """Fetch institution homepage hints from OpenAlex metadata."""
+    if not university_name:
+        return InstitutionUrlHint()
+
+    params: dict[str, str | int] = {
+        "search": university_name,
+        "per-page": 5,
+    }
+    if country_code:
+        params["filter"] = f"country_code:{country_code.upper()}"
+    if config.OPENALEX_EMAIL:
+        params["mailto"] = config.OPENALEX_EMAIL
+
+    headers = {"User-Agent": USER_AGENT}
+    try:
+        with httpx.Client(timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True, headers=headers) as client:
+            response = client.get(f"{config.OPENALEX_BASE_URL}/institutions", params=params)
+            response.raise_for_status()
+            payload = response.json()
+    except (httpx.HTTPError, ValueError):
+        return InstitutionUrlHint()
+
+    results = payload.get("results", [])
+    if not isinstance(results, list):
+        return InstitutionUrlHint()
+
+    target_name = university_name.strip().casefold()
+    target_country = country_code.upper() if country_code else None
+
+    for result in results:
+        if not isinstance(result, dict):
+            continue
+        homepage = _normalize_url(result.get("homepage_url"))
+        if not homepage:
+            continue
+        display_name = str(result.get("display_name", "")).strip().casefold()
+        result_country = result.get("country_code")
+        if display_name == target_name and (not target_country or result_country == target_country):
+            return InstitutionUrlHint(homepage_url=homepage)
+
+    for result in results:
+        if not isinstance(result, dict):
+            continue
+        homepage = _normalize_url(result.get("homepage_url"))
+        result_country = result.get("country_code")
+        if homepage and (not target_country or result_country == target_country):
+            return InstitutionUrlHint(homepage_url=homepage)
+
+    return InstitutionUrlHint()
+
+
+def _name_tokens(professor_name: str) -> list[str]:
+    tokens = [token.lower() for token in re.findall(r"[A-Za-z]+", professor_name)]
+    honorifics = {"dr", "prof", "professor", "mr", "mrs", "ms"}
+    while tokens and tokens[0] in honorifics:
+        tokens.pop(0)
+    return tokens
+
+
+def _professor_profile_candidates(base_url: str, professor_name: str) -> list[str]:
+    tokens = _name_tokens(professor_name)
+    if not tokens:
+        return []
+
+    first = tokens[0]
+    last = tokens[-1]
+    full_slug = "-".join(tokens)
+    first_last_slug = f"{first}-{last}"
+    initial_last_slug = f"{first[:1]}{last}"
+
+    slugs: list[str] = []
+    for slug in (last, first_last_slug, full_slug, initial_last_slug):
+        if slug and slug not in slugs:
+            slugs.append(slug)
+
+    path_templates = (
+        "/people/{slug}",
+        "/person/{slug}",
+        "/faculty/{slug}",
+        "/staff/{slug}",
+        "/lab/{slug}",
+        "/~{slug}",
+    )
+
+    candidates: list[str] = []
+    for slug in slugs:
+        for template in path_templates:
+            candidate = _normalize_url(urljoin(base_url.rstrip("/") + "/", template.format(slug=slug)))
+            if candidate and candidate not in candidates:
+                candidates.append(candidate)
+            if len(candidates) >= MAX_PROFILE_URL_CANDIDATES:
+                return candidates
+    return candidates
+
+
+def _first_reachable_url(candidates: list[str]) -> str | None:
+    if not candidates:
+        return None
+
+    headers = {"User-Agent": USER_AGENT}
+    try:
+        with httpx.Client(timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True, headers=headers) as client:
+            for candidate in candidates:
+                try:
+                    response = client.get(candidate)
+                except httpx.HTTPError:
+                    continue
+                if response.status_code >= 400:
+                    continue
+                content_type = response.headers.get("content-type", "").lower()
+                if content_type and "text/html" not in content_type and "application/xhtml+xml" not in content_type:
+                    continue
+                return candidate
+    except httpx.HTTPError:
+        return None
+    return None
+
+
 def find_lab_url(
     professor_name: str,
     university_name: str | None,
@@ -199,22 +324,31 @@ def find_lab_url(
     openalex_id: str | None = None,
 ) -> str | None:
     """Return best-known lab/homepage URL for a professor."""
-    del professor_name, university_name, country_code
-
-    candidates: list[str] = []
+    trusted_candidates: list[str] = []
     for candidate in (lab_url, homepage_url):
         normalized = _normalize_url(candidate)
-        if normalized and normalized not in candidates:
-            candidates.append(normalized)
+        if normalized and normalized not in trusted_candidates:
+            trusted_candidates.append(normalized)
 
     if openalex_id:
         hints = fetch_openalex_author_urls(openalex_id)
         for candidate in (hints.homepage_url, hints.works_api_url):
             normalized = _normalize_url(candidate)
-            if normalized and normalized not in candidates:
-                candidates.append(normalized)
+            if normalized and normalized not in trusted_candidates:
+                trusted_candidates.append(normalized)
 
-    return candidates[0] if candidates else None
+    if trusted_candidates:
+        return trusted_candidates[0]
+
+    institution_homepage = fetch_openalex_institution_homepage(university_name, country_code).homepage_url
+    if institution_homepage is None:
+        return None
+
+    profile_candidates = _professor_profile_candidates(institution_homepage, professor_name)
+    reachable = _first_reachable_url(profile_candidates)
+    if reachable:
+        return reachable
+    return institution_homepage
 
 
 def _robots_parser_for_origin(client: httpx.Client, origin: str) -> RobotFileParser | None:
