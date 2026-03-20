@@ -13,10 +13,11 @@ This guide covers Search MVP issue `#30`: deploy FastAPI backend to Railway, fro
 1. Create a Supabase project.
 2. Copy the Postgres connection string.
 3. Set `DATABASE_URL` in Railway to the Supabase URI.
-4. Run schema init once from any environment that can reach the database:
+4. Schema init runs automatically via Railway's `releaseCommand` on every deploy (see `railway.json`).
+   To run it manually against any reachable database:
 
 ```bash
-PYTHONPATH=src python -c "from search_engine.db import init_db; init_db()"
+DATABASE_URL=<supabase-uri> PYTHONPATH=src python -m search_engine init-db
 ```
 
 ## 2. Deploy Backend to Railway
@@ -34,6 +35,12 @@ Railway variables:
 Health check:
 
 - Path: `/api/health`
+
+Release command (`railway.json` `releaseCommand` — runs before every deploy):
+
+```bash
+python -m search_engine init-db
+```
 
 Expected production start command (from container CMD):
 
@@ -59,8 +66,8 @@ Workflow file: `.github/workflows/deploy.yml`
 
 Trigger branches:
 
-- `main` -> production deploy hooks
-- `feature/*`, `fix/*`, `chore/*`, `cursor/*` -> preview deploy hooks
+- `main` → production deploy hooks
+- `claude/**`, `feature/**`, `fix/**`, `chore/**`, `cursor/**` → preview deploy hooks
 
 Required repository secrets:
 

@@ -28,13 +28,12 @@ Traditional directories show ALL professors → TorchMail shows ONLY professors 
 - International students navigating unfamiliar academic systems
 - Professors seeking qualified research assistants
 
-## Technology Stack
-- **Frontend**: React/Next.js with TypeScript
-- **Backend**: Node.js/Express or Python FastAPI
-- **Database**: PostgreSQL + Redis
-- **AI/ML**: OpenAI API integration
-- **Email**: Resend/SendGrid for reliable delivery
-- **Authentication**: Auth0/Supabase Auth
+## Technology Stack (Search MVP — shipped)
+- **Frontend**: React 19 + Vite 7 + Tailwind CSS 4
+- **Backend**: Python FastAPI + Uvicorn
+- **Database**: Supabase PostgreSQL (SQLAlchemy ORM)
+- **Research data**: OpenAlex API
+- **Deploy**: Vercel (frontend) + Railway (backend)
 
 ## Business Model
 - **Freemium**: Basic features free, premium features subscription-based
@@ -76,41 +75,47 @@ TorchMail has extensive documentation to guide development:
 - **Project Structure**: Detailed directory organization and development guidelines
 
 ## Getting Started
+
 ```bash
-# Clone the repository
 git clone https://github.com/JerryIshihara/torchmail.git
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env
-
-# Run development server
-npm run dev
+cd torchmail
+cp .env.example .env        # fill in DATABASE_URL and OPENALEX_EMAIL
 ```
 
-### Search API (FastAPI)
+### Backend (FastAPI)
+
 ```bash
-python -m pip install -r src/backend/requirements.txt
-uvicorn src.backend.main:app --reload
+pip install -r src/search_engine/requirements.txt -r src/backend/requirements.txt
+PYTHONPATH=src python -m search_engine init-db   # create tables (idempotent)
+PYTHONPATH=src uvicorn src.backend.main:app --reload
+# API available at http://127.0.0.1:8000
 ```
 
-### Search Frontend (Vite + React + Tailwind)
+### Frontend (Vite + React + Tailwind)
+
 ```bash
 cd src/frontend
 npm install
 npm run dev
+# UI available at http://127.0.0.1:5173 — proxies /api/* to :8000
 ```
 
-The frontend runs at `http://127.0.0.1:5173` and proxies `/api/*` to `http://127.0.0.1:8000` by default.
+### API quick test
 
 ```bash
-# Search globally (priority countries are ranked first)
-curl "http://127.0.0.1:8000/api/search?q=machine%20learning"
+# Search globally — priority countries (US/GB/HK/SG) ranked first
+curl "http://127.0.0.1:8000/api/search?q=machine+learning"
 
-# Optional country scoping (comma-separated ISO country codes)
-curl "http://127.0.0.1:8000/api/search?q=machine%20learning&countries=US,GB"
+# Scope to specific countries
+curl "http://127.0.0.1:8000/api/search?q=machine+learning&countries=US,GB"
+```
+
+### CLI (interactive search, no server needed)
+
+```bash
+PYTHONPATH=src python -m search_engine          # interactive loop
+PYTHONPATH=src python -m search_engine search "CRISPR"
+PYTHONPATH=src python -m search_engine stats    # DB row counts
 ```
 
 ## Deployment
