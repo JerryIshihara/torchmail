@@ -76,6 +76,21 @@ def interactive():
         _run_search(query)
 
 
+@main.command("init-db")
+def init_db_cmd():
+    """Create all database tables (idempotent — safe to run on every deploy).
+
+    Use this as a release/migration step before starting the server:
+
+    \b
+    Example (Railway release command):
+        python -m search_engine init-db
+    """
+    console.print(f"Initialising database schema on [bold]{_db_label()}[/bold]…")
+    init_db()
+    console.print("[green]✓ Database schema ready.[/green]")
+
+
 @main.command()
 def stats():
     """Show database statistics."""

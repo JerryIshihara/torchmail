@@ -6,6 +6,7 @@
   },
   "deploy": {
     "numReplicas": 1,
+    "releaseCommand": "python -m search_engine init-db",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 5,
     "healthcheckPath": "/api/health",
