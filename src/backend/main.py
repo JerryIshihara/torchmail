@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -59,13 +62,13 @@ def _startup() -> None:
     init_db()
 
 
-def _latest_active_hiring_signal(professor: Professor | None) -> tuple[str | None, str | None]:
+def _latest_active_hiring_signal(professor: Professor | None) -> tuple[str | None, str | None, str | None]:
     if professor is None:
-        return None, None
+        return None, None, None
 
     signals = getattr(professor, "hiring_signals", None)
     if not signals:
-        return None, None
+        return None, None, None
 
     now = datetime.now(timezone.utc)
     active_signals = [
@@ -75,16 +78,18 @@ def _latest_active_hiring_signal(professor: Professor | None) -> tuple[str | Non
         and ((expires_at := getattr(signal, "expires_at", None)) is None or expires_at > now)
     ]
     if not active_signals:
-        return None, None
+        return None, None, None
 
     latest = max(
         active_signals, key=lambda signal: getattr(signal, "scraped_at", datetime.min.replace(tzinfo=timezone.utc))
     )
-    return getattr(latest, "hiring_paragraph", None), getattr(latest, "hiring_url", None)
+    scraped_at = getattr(latest, "scraped_at", None)
+    scraped_at_iso = scraped_at.isoformat() if scraped_at else None
+    return getattr(latest, "hiring_paragraph", None), getattr(latest, "hiring_url", None), scraped_at_iso
 
 
 def _has_active_hiring_signal(professor: Professor | Any | None) -> bool:
-    paragraph, _ = _latest_active_hiring_signal(professor)
+    paragraph, _, __ = _latest_active_hiring_signal(professor)
     return bool(paragraph)
 
 
@@ -161,8 +166,10 @@ def _backfill_hiring_signals(professor_ids: list[int]) -> None:
                 session.commit()
             except IntegrityError:
                 session.rollback()
-            except Exception:
+                logger.warning("Integrity error for professor_id=%s; skipping", professor_id)
+            except Exception as exc:
                 session.rollback()
+                logger.error("Scraper backfill failed for professor_id=%s: %s", professor_id, exc)
     finally:
         session.close()
 
@@ -186,7 +193,7 @@ def _enqueue_hiring_backfill(background_tasks: BackgroundTasks, opportunities: l
 def _serialize_opportunity(opportunity: ResearchOpportunity, rank: int | None = None) -> dict[str, Any]:
     professor = opportunity.professor
     university = professor.university if professor else None
-    hiring_paragraph, hiring_url = _latest_active_hiring_signal(professor)
+    hiring_paragraph, hiring_url, hiring_scraped_at = _latest_active_hiring_signal(professor)
     country_code = university.country_code if university else None
 
     return {
@@ -196,6 +203,7 @@ def _serialize_opportunity(opportunity: ResearchOpportunity, rank: int | None = 
             "name": professor.name if professor else None,
             "orcid": professor.orcid if professor else None,
             "openalex_id": professor.openalex_id if professor else None,
+            "homepage_url": professor.homepage_url if professor else None,
         },
         "university": {
             "name": university.name if university else None,
@@ -209,6 +217,7 @@ def _serialize_opportunity(opportunity: ResearchOpportunity, rank: int | None = 
         "composite_score": opportunity.composite_score,
         "hiring_paragraph": hiring_paragraph or NO_ACTIVE_HIRING_TEXT,
         "hiring_url": hiring_url,
+        "hiring_scraped_at": hiring_scraped_at,
         "is_priority_country": is_priority_country(country_code),
     }
 
