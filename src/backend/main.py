@@ -7,12 +7,12 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
+
+logger = logging.getLogger(__name__)
 
 try:
     from src.backend.scraper import HiringInfo, find_lab_url, scrape_hiring_info
