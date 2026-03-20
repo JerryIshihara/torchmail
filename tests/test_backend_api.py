@@ -21,6 +21,7 @@ def _make_opportunity() -> SimpleNamespace:
         name="Dr. Jane Smith",
         orcid="0000-0001-2345-6789",
         openalex_id="https://openalex.org/A1234567",
+        homepage_url=None,
         university=university,
         hiring_signals=[],
     )
@@ -69,9 +70,11 @@ def test_search_endpoint_uses_pipeline_and_returns_structured_json(monkeypatch):
     assert payload["other_count"] == 0
     assert payload["results"][0]["rank"] == 1
     assert payload["results"][0]["professor"]["name"] == "Dr. Jane Smith"
+    assert payload["results"][0]["professor"]["homepage_url"] is None
     assert payload["results"][0]["is_priority_country"] is True
     assert payload["results"][0]["hiring_paragraph"] == "No active hiring page found"
     assert payload["results"][0]["hiring_url"] is None
+    assert payload["results"][0]["hiring_scraped_at"] is None
 
 
 def test_search_endpoint_uses_latest_active_hiring_signal(monkeypatch):
@@ -103,6 +106,7 @@ def test_search_endpoint_uses_latest_active_hiring_signal(monkeypatch):
     result = response.json()["results"][0]
     assert result["hiring_paragraph"] == "We are looking for PhD students in ML systems."
     assert result["hiring_url"] == "https://lab.example.edu/openings"
+    assert result["hiring_scraped_at"] is not None
 
 
 def test_search_endpoint_parses_country_filters(monkeypatch):
