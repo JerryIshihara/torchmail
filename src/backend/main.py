@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -39,7 +40,6 @@ except ModuleNotFoundError:
     )
     from search_engine.search import fetch_opportunities, is_priority_country, normalize_country_codes
 
-app = FastAPI(title="TorchMail Search API", version="0.1.0")
 NO_ACTIVE_HIRING_TEXT = "No active hiring page found"
 
 
@@ -48,6 +48,29 @@ def _cors_origins() -> list[str]:
     return [origin.strip() for origin in origins.split(",") if origin.strip()]
 
 
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    _validate_env()
+    init_db()
+    yield
+
+
+def _validate_env() -> None:
+    """Log warnings for missing recommended environment variables."""
+    if not os.getenv("DATABASE_URL"):
+        logger.warning(
+            "DATABASE_URL is not set — using SQLite fallback or default. "
+            "Set DATABASE_URL to a PostgreSQL connection string for production."
+        )
+    if not os.getenv("OPENALEX_EMAIL"):
+        logger.warning(
+            "OPENALEX_EMAIL is not set — OpenAlex requests will use the anonymous pool. "
+            "Set OPENALEX_EMAIL to your contact email for higher rate limits."
+        )
+
+
+app = FastAPI(title="TorchMail Search API", version="0.1.0", lifespan=_lifespan)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins(),
@@ -55,11 +78,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def _startup() -> None:
-    init_db()
 
 
 def _latest_active_hiring_signal(professor: Professor | None) -> tuple[str | None, str | None, str | None]:
