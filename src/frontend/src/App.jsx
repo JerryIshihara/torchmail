@@ -141,7 +141,7 @@ export default function App() {
           <section aria-live="polite" className="space-y-4">
             <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
               <span className="font-semibold text-slate-900">{results.result_count}</span> results for{" "}
-              <span className="font-semibold text-slate-900">"{results.query}"</span>
+              <span className="font-semibold text-slate-900">&ldquo;{results.query}&rdquo;</span>
               {" · "}
               <span>{results.priority_count} priority-region</span>
               {" · "}
