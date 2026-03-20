@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from search_engine import search as search_module
 from search_engine.search import AuthorRecord
@@ -58,7 +58,7 @@ class TestAuthorRecord:
         assert author.latest_paper_date == "2025-06-15"
 
     def test_composite_score_ranges(self):
-        recent = (datetime.utcnow() - timedelta(days=10)).strftime("%Y-%m-%d")
+        recent = (datetime.now(timezone.utc) - timedelta(days=10)).strftime("%Y-%m-%d")
         papers = [
             {
                 "title": "Recent work",
@@ -72,7 +72,7 @@ class TestAuthorRecord:
         assert 0 <= score <= 100
 
     def test_composite_score_higher_with_more_papers(self):
-        recent = (datetime.utcnow() - timedelta(days=5)).strftime("%Y-%m-%d")
+        recent = (datetime.now(timezone.utc) - timedelta(days=5)).strftime("%Y-%m-%d")
         base_paper = {
             "publication_date": recent,
             "cited_by_count": 20,
@@ -90,7 +90,7 @@ def test_normalize_country_codes_dedupes_and_upcases():
 def test_boosted_composite_score_adds_priority_bonus(monkeypatch):
     monkeypatch.setattr(search_module.config, "PRIORITY_COUNTRIES", ["US"])
     monkeypatch.setattr(search_module.config, "PRIORITY_COUNTRY_BOOST", 15.0)
-    recent = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+    recent = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     author = AuthorRecord(
         openalex_id="https://openalex.org/A111",
         name="Dr. Priority",
