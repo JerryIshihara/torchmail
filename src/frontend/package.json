@@ -8,15 +8,20 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "echo \"No frontend tests configured\"",
-    "lint": "echo \"No frontend lint configured\""
+    "lint": "eslint src/"
   },
   "dependencies": {
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@tailwindcss/vite": "^4.1.13",
     "@vitejs/plugin-react": "^5.0.2",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.4.0",
     "tailwindcss": "^4.1.13",
     "vite": "^7.1.7"
   }

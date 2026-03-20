@@ -114,3 +114,18 @@ jobs:
         env:
           PYTHONPATH: src
         run: python -m search_engine --help
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix src/frontend
+
+      - name: Lint frontend (ESLint)
+        run: npm run lint --prefix src/frontend
+
+      - name: Build frontend
+        run: npm run build --prefix src/frontend
