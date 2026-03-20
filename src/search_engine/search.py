@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 import httpx
 
@@ -60,8 +60,8 @@ class AuthorRecord:
         recency = 0.0
         if self.latest_paper_date:
             try:
-                d = datetime.strptime(self.latest_paper_date, "%Y-%m-%d")
-                days_ago = (datetime.utcnow() - d).days
+                d = datetime.strptime(self.latest_paper_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                days_ago = (datetime.now(timezone.utc) - d).days
                 recency = max(0, 100 - days_ago * 0.3)
             except ValueError:
                 pass
@@ -100,7 +100,7 @@ def boosted_composite_score(author: AuthorRecord, priority_country_codes: set[st
 
 
 def _build_params(query: str, page: int, countries: list[str] | None = None) -> dict:
-    today = datetime.utcnow()
+    today = datetime.now(timezone.utc)
     from_year = today.year - config.PUBLICATION_LOOKBACK_YEARS
     from_date = f"{from_year}-01-01"
     filters = [f"from_publication_date:{from_date}"]
