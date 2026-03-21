@@ -10,14 +10,33 @@ This guide covers Search MVP issue `#30`: deploy FastAPI backend to Railway, fro
 
 ## 1. Provision Supabase
 
-1. Create a Supabase project.
-2. Copy the Postgres connection string.
-3. Set `DATABASE_URL` in Railway to the Supabase URI.
+### Connection mode — use Session Pooler for Railway
+
+Supabase offers three connection modes. **Use Session Pooler** for Railway:
+
+| Mode | Host | Port | IPv4? | SQLAlchemy safe? | When to use |
+|------|------|------|-------|-----------------|-------------|
+| **Session Pooler** ✅ | `aws-0-<region>.pooler.supabase.com` | 5432 | Yes | Yes | Railway (recommended) |
+| Direct connection | `db.<ref>.supabase.co` | 5432 | No* | Yes | IPv6 infra or paid IPv4 add-on |
+| Transaction Pooler | `aws-0-<region>.pooler.supabase.com` | 6543 | Yes | Partial† | Serverless / edge functions |
+
+\* Direct connection uses IPv6 by default on new projects; Railway may fail to connect without the Supabase IPv4 Add-On ($4/mo).
+† Transaction Pooler disables server-side prepared statements; the engine handles this automatically when port 6543 is detected.
+
+### Steps
+
+1. Create a Supabase project at https://app.supabase.com.
+2. Go to **Project → Connect → Session pooler** and copy the connection string.
+   It looks like:
+   ```
+   postgresql://postgres.<project-ref>:[PASSWORD]@aws-0-<region>.pooler.supabase.com:5432/postgres
+   ```
+3. Set `DATABASE_URL` to that string in Railway's environment variables.
 4. Schema init runs automatically via Railway's `releaseCommand` on every deploy (see `railway.json`).
-   To run it manually against any reachable database:
+   To run it manually from any machine that can reach the database:
 
 ```bash
-DATABASE_URL=<supabase-uri> PYTHONPATH=src python -m search_engine init-db
+DATABASE_URL=<session-pooler-uri> PYTHONPATH=src python -m search_engine init-db
 ```
 
 ## 2. Deploy Backend to Railway

@@ -128,12 +128,43 @@ _SessionLocal = None
 
 
 def _engine_kwargs() -> dict:
-    """Build connect_args for local vs hosted PostgreSQL."""
-    kwargs: dict = {"echo": False, "pool_pre_ping": True}
+    """Build SQLAlchemy engine kwargs for local and hosted PostgreSQL.
+
+    Connection-mode detection:
+    - Local (localhost / 127.0.0.1): no SSL, default pool sizing.
+    - Supabase Session Pooler (pooler.supabase.com, port 5432): SSL required,
+      session mode is fully compatible with SQLAlchemy prepared statements.
+    - Supabase Transaction Pooler (port 6543): SSL required; psycopg2 must
+      disable prepared statements to avoid "cached plan must not change result
+      type" errors.
+    - Other remote hosts: SSL required, standard pool sizing.
+    """
     url = config.DATABASE_URL
-    is_remote = not any(h in url for h in ("localhost", "127.0.0.1", "host.docker.internal"))
-    if is_remote:
-        kwargs["connect_args"] = {"sslmode": "require"}
+    is_local = any(h in url for h in ("localhost", "127.0.0.1", "host.docker.internal"))
+
+    kwargs: dict = {
+        "echo": False,
+        "pool_pre_ping": True,
+        # Keep a small persistent pool suitable for Railway's single replica.
+        "pool_size": 5,
+        "max_overflow": 10,
+    }
+
+    if is_local:
+        return kwargs
+
+    # All remote connections require SSL.
+    connect_args: dict = {"sslmode": "require"}
+
+    # Supabase Transaction Pooler (port 6543) runs PgBouncer in transaction
+    # mode which does not support prepared statements.
+    if ":6543/" in url or url.endswith(":6543"):
+        connect_args["options"] = "-c default_transaction_isolation=read\\ committed"
+        kwargs["executemany_mode"] = "values"
+        # Disable server-side prepared statements for psycopg2.
+        connect_args["prepared_statement_cache_size"] = 0  # type: ignore[assignment]
+
+    kwargs["connect_args"] = connect_args
     return kwargs
 
 
