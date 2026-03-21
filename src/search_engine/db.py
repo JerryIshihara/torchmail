@@ -140,15 +140,18 @@ def _engine_kwargs() -> dict:
     - Other remote hosts: SSL required, standard pool sizing.
     """
     url = config.DATABASE_URL
-    is_local = any(h in url for h in ("localhost", "127.0.0.1", "host.docker.internal"))
+    is_sqlite = url.startswith("sqlite")
+    is_local = is_sqlite or any(h in url for h in ("localhost", "127.0.0.1", "host.docker.internal"))
 
     kwargs: dict = {
         "echo": False,
         "pool_pre_ping": True,
-        # Keep a small persistent pool suitable for Railway's single replica.
-        "pool_size": 5,
-        "max_overflow": 10,
     }
+
+    # SQLite doesn't support pool_size / max_overflow and uses StaticPool.
+    if not is_sqlite:
+        kwargs["pool_size"] = 5
+        kwargs["max_overflow"] = 10
 
     if is_local:
         return kwargs
